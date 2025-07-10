@@ -347,10 +347,10 @@
             <div id="header-title">Mapa Sanitario - Municipalidad de Córdoba</div>
             <div id="header-logos">
                 <div class="logo-container">
-                    <img src="https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/SecreB.png" alt="Secretaría de Salud" />
+                    <img src="https://reporteyanalisisdedatos.github.io/MMapa-Calor-Sanitario-Municipalidad-de-Cordoba-/SecreB.png" alt="Secretaría de Salud" />
                 </div>
                 <div class="logo-container">
-                    <img src="https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/HorizontalCTWhite.png" alt="Coordinación Tecnológica" />
+                    <img src="https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/HorizontalCTWhite.png" alt="Coordinación Tecnológica" />
                 </div>
             </div>
         </div>
@@ -450,7 +450,7 @@
             const map = L.map('map').setView([-31.42, -64.18], 11);
 
             const iconoEfectores = L.icon({
-                iconUrl:'https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/EFECTORES.png',
+                iconUrl:'https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/EFECTORES.png',
                 iconSize: [36, 36],
                 iconAnchor: [18, 36],
                 popupAnchor: [0, -36],
@@ -459,14 +459,14 @@
             
 
             const iconoHPA = L.icon({
-                iconUrl: 'https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/HOSP-HPA-PLM.png',
+                iconUrl: 'https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/HOSP-HPA-PLM.png',
                 iconSize: [38, 38],
                 iconAnchor: [19, 38],
                 popupAnchor: [0, -38],
             });
 
             const iconoCentroSalud = L.icon({
-                iconUrl: 'https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/CS.png', // Asegúrate de tener esta imagen en la misma carpeta
+                iconUrl: 'https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/CS.png', // Asegúrate de tener esta imagen en la misma carpeta
                 iconSize: [28, 28],
                 iconAnchor: [14, 28],
                 popupAnchor: [0, -28],
@@ -544,19 +544,19 @@
             }
 
             // Cargar efectores y zonas
-           const fetchEfectores = fetch("https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/efectores.geojson")
+           const fetchEfectores = fetch("https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/efectores.geojson")
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar efectores.json: ${res.status}`);
                     return res.json();
                 });
 
-            const fetchZonasGeo = fetch("https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/zonas.geojson")
+            const fetchZonasGeo = fetch("https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/zonas.geojson")
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar zonas.geojson: ${res.status}`);
                     return res.json();
                 });
 
-            const fetchZonasValores = fetch("https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/zonas_valores.json")
+            const fetchZonasValores = fetch("https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/zonas_valores.json")
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
                     return res.json();
@@ -695,7 +695,7 @@
                 'LOCALIDADES',
                 'ENTEMETROPOLITANO'
             ];
-            const urlBase ="https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/";
+            const urlBase ="https://reporteyanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/";
 
             archivosCapas.forEach((nombre) => {
                 fetch(`${urlBase}${nombre}.json`)
