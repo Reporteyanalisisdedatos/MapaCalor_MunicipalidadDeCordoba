@@ -1,4 +1,4 @@
-<!DOCTYPE html> ✏
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
@@ -544,7 +544,7 @@
             }
 
             // Cargar efectores y zonas
-           const fetchEfectores = fetch("https://reporteanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba-/efectores.geojson")
+           const fetchEfectores = fetch("https://reporteanalisisdedatos.github.io/Mapa-Calor-Sanitario-Municipalidad-de-Cordoba/efectores.geojson")
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar efectores.json: ${res.status}`);
                     return res.json();
