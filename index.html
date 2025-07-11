@@ -347,10 +347,10 @@
             <div id="header-title">Mapa Sanitario - Municipalidad de Córdoba</div>
             <div id="header-logos">
                 <div class="logo-container">
-                    <img src="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/SecreB.png" alt="Secretaría de Salud" />
+                    <img src="SecreB.png" alt="Secretaría de Salud" />
                 </div>
                 <div class="logo-container">
-                    <img src="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/HorizontalCTWhite.png" alt="Coordinación Tecnológica" />
+                    <img src="HorizontalCTWhite.png" alt="Coordinación Tecnológica" />
                 </div>
             </div>
         </div>
@@ -450,7 +450,7 @@
             const map = L.map('map').setView([-31.42, -64.18], 11);
 
             const iconoEfectores = L.icon({
-                iconUrl:'https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/EFECTORES.png',
+                iconUrl:'EFECTORES.png',
                 iconSize: [36, 36],
                 iconAnchor: [18, 36],
                 popupAnchor: [0, -36],
@@ -459,14 +459,14 @@
             
 
             const iconoHPA = L.icon({
-                iconUrl: 'https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/HOSP-HPA-PLM.png',
+                iconUrl: 'HOSP-HPA-PLM.png',
                 iconSize: [38, 38],
                 iconAnchor: [19, 38],
                 popupAnchor: [0, -38],
             });
 
             const iconoCentroSalud = L.icon({
-                iconUrl: 'https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/CS.png', // Asegúrate de tener esta imagen en la misma carpeta
+                iconUrl: 'CS.png', // Asegúrate de tener esta imagen en la misma carpeta
                 iconSize: [28, 28],
                 iconAnchor: [14, 28],
                 popupAnchor: [0, -28],
@@ -544,19 +544,19 @@
             }
 
             // Cargar efectores y zonas
-           const fetchEfectores = fetch("https://reporteanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/efectores.geojson")
+           const fetchEfectores = fetch("efectores.geojson")
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar efectores.json: ${res.status}`);
                     return res.json();
                 });
 
-            const fetchZonasGeo = fetch("https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/zonas.geojson")
+            const fetchZonasGeo = fetch("zonas.geojson")
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar zonas.geojson: ${res.status}`);
                     return res.json();
                 });
 
-            const fetchZonasValores = fetch("https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/zonas_valores.json")
+            const fetchZonasValores = fetch("zonas_valores.json")
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
                     return res.json();
