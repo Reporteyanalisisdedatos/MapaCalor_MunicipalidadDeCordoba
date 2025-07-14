@@ -406,36 +406,6 @@
             </div>
         </div>
 
-        <div class="filtro-epidemiologico">
-            <h3>Filtro Epidemiológico</h3>
-
-            <label for="filtro-ano">Año:</label>
-            <select id="filtro-ano">
-                <option value="">Todos</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-            </select>
-
-            <label for="filtro-mes">Mes:</label>
-            <select id="filtro-mes">
-                <option value="">Todos</option>
-                ${[...Array(12)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-            </select>
-
-            <label for="filtro-semana">Semana Epidemiológica:</label>
-            <select id="filtro-semana">
-                <option value="">Todas</option>
-                ${[...Array(52)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-            </select>
-
-            <label for="filtro-diagnostico">Diagnóstico:</label>
-            <select id="filtro-diagnostico" class="select2" style="width: 100%">
-                <option value="">Todos</option>
-                <!-- opciones se insertan dinámicamente -->
-            </select>
-        </div>
-
-
         </div>
 
     <div id="map"></div>
@@ -460,8 +430,6 @@
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
     <script>
-        let datosAtenciones = null;
-        let capaCalor = null;
         let efectoresData = null;
         let capaEfectores = null;
         const capas = {}; // Objeto para almacenar las capas de GeoJSON (la geometría)
@@ -596,25 +564,10 @@
                     return res.json();
                 });
             const fetchAtenciones = fetch("atenciones2025.geojson")
-                .then(res => res.json())
-                .then(data => {
-                    datosAtenciones = data;
-                    poblarDiagnosticos(data);     // ya lo tenés
-                    aplicarFiltroEpidemiologico(); // mostrar inicial
-
-                    // 🟡 ACÁ VAN LOS EVENT LISTENERS
-                    document.getElementById('filtro-ano')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
-
-                    document.getElementById('filtro-mes')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
-
-                    document.getElementById('filtro-semana')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
-
-                    document.getElementById('filtro-diagnostico')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
-                });
+                .then(res => {
+                    if (!res.ok) throw new Error(`Error al cargar atenciones.geojson: ${res.status}`);
+                    return res.json();
+            });
 
 
             Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
@@ -1157,46 +1110,30 @@
             }
             let capaCalor = null;
 
-            function mostrarMapaDeCalor(datos) {
-                if (capaCalor) map.removeLayer(capaCalor);
+            function mostrarMapaDeCalor(geojson) {
+                if (capaCalor) {
+                    map.removeLayer(capaCalor);
+                }
 
-                const puntos = datos.features.map(f => {
+                const puntosCalor = geojson.features.map(f => {
                     const [lng, lat] = f.geometry.coordinates;
-                    return [lat, lng, 1]; // el peso es 1, podrías usar otra lógica
+                    const intensidad = f.properties.total_atenciones || 1;
+                    return [lat, lng, intensidad]; // formato [lat, lng, weight]
                 });
 
-                capaCalor = L.heatLayer(puntos, {
+                capaCalor = L.heatLayer(puntosCalor, {
                     radius: 25,
                     blur: 20,
                     maxZoom: 17,
                     gradient: {
-                    0.2: "#DFF6D8",
-                    0.4: "#B8E986",
-                    0.6: "#FFFF8C",
-                    0.8: "#F29E2E",
-                    1.0: "#D7191C"
+                        0.2: "#DFF6D8",   // Verde más claro
+                        0.4: "#B8E986",   // Verde
+                        0.6: "#FFFF8C",   // Amarillo
+                        0.8: "#F29E2E",   // Naranja
+                        1.0: "#D7191C"    // Rojo
                     }
                 }).addTo(map);
-                }
-
-            function aplicarFiltroEpidemiologico() {
-                const año = document.getElementById('filtro-ano').value;
-                const mes = document.getElementById('filtro-mes').value;
-                const semana = document.getElementById('filtro-semana').value;
-                const diagnostico = document.getElementById('filtro-diagnostico').value;
-
-                if (!datosAtenciones) return;
-
-                const filtrados = datosAtenciones.features.filter(f => {
-                    const props = f.properties;
-                    return (!año || props.AÑO == año) &&
-                        (!mes || props.MES == mes) &&
-                        (!semana || props.SEMANAEPIDEMIOLOGICA == semana) &&
-                        (!diagnostico || props.Diagnostico === diagnostico);
-                });
-
-                mostrarMapaDeCalor({ type: "FeatureCollection", features: filtrados });
-                }
+            }
 
 
 
