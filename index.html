@@ -411,7 +411,7 @@
         </div>
         <!-- 5. FILTROS DE CALOR -->
         <div class="filter-group">
-        <div class="filter-group-title">Filtros de Mapa de Calor</div>
+        <div class="filter-group-title">Filtros de Epidemiología</div>
         <div class="filter-group-content">
             <label>
             <select id="filtro-anio">
@@ -477,6 +477,7 @@
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
     <script>
+        let atencionesData = null;
         let efectoresData = null;
         let capaEfectores = null;
         const capas = {}; // Objeto para almacenar las capas de GeoJSON (la geometría)
@@ -619,12 +620,32 @@
 
             Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
                 .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
-                    mostrarMapaDeCalor(atenciones);
+                    
                     ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
                         document.getElementById(id).addEventListener('change', () => {
                             mostrarMapaDeCalor(atenciones);
                         });
                     });
+                    
+                    
+                    atencionesData = atenciones;
+                    mostrarMapaDeCalor(atenciones);
+
+                    // 👇 Agregá esto:
+                    const semanasSet = new Set();
+                    atenciones.features.forEach(f => {
+                    const semana = f.properties?.SEMANAEPIDEMIOLOGICA;
+                    if (semana) semanasSet.add(semana);
+                    });
+
+                    const filtroSemana = document.getElementById("filtro-semana");
+                    [...semanasSet].sort((a, b) => a - b).forEach(sem => {
+                    const opt = document.createElement("option");
+                    opt.value = sem;
+                    opt.textContent = `Semana ${sem}`;
+                    filtroSemana.appendChild(opt);
+                    });
+
 
                     // 🔽 Agregá esto acá
                     const diagnosticosSet = new Set();
