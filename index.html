@@ -577,44 +577,84 @@
                 return null;
             }
 
-            // Cargar efectores y zonas
-           const fetchEfectores = fetch("efectores.geojson")
-                .then(res => {
-                    if (!res.ok) throw new Error(`Error al cargar efectores.json: ${res.status}`);
-                    return res.json();
-                });
+           // Cargar efectores y zonas
+                const fetchEfectores = fetch("efectores.geojson")
+                    .then(res => {
+                        if (!res.ok) throw new Error(`Error al cargar efectores.json: ${res.status}`);
+                        return res.json();
+                    });
 
-            const fetchZonasGeo = fetch("zonas.geojson")
-                .then(res => {
-                    if (!res.ok) throw new Error(`Error al cargar zonas.geojson: ${res.status}`);
-                    return res.json();
-                });
+                const fetchZonasGeo = fetch("zonas.geojson")
+                    .then(res => {
+                        if (!res.ok) throw new Error(`Error al cargar zonas.geojson: ${res.status}`);
+                        return res.json();
+                    });
 
-            const fetchZonasValores = fetch("zonas_valores.json")
-                .then(res => {
-                    if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
-                    return res.json();
-                });
-            const fetchAtenciones = fetch("atenciones2025.geojson")
-                .then(res => res.json())
-                .then(data => {
-                    datosAtenciones = data;
-                    poblarDiagnosticos(data);     // ya lo tenés
-                    aplicarFiltroEpidemiologico(); // mostrar inicial
+                const fetchZonasValores = fetch("zonas_valores.json")
+                    .then(res => {
+                        if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
+                        return res.json();
+                    });
 
-                    // 🟡 ACÁ VAN LOS EVENT LISTENERS
-                    document.getElementById('filtro-ano')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
+                // ✅ Este no va con const, porque se encadena luego:
+                fetch("atenciones2025.geojson")
+                    .then(res => {
+                        if (!res.ok) throw new Error(`Error al cargar atenciones2025.geojson: ${res.status}`);
+                        return res.json();
+                    })
 
-                    document.getElementById('filtro-mes')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
+                    // ✅ Definí acá la función auxiliar
+                    .then(data => {
+                        datosAtenciones = data;
 
-                    document.getElementById('filtro-semana')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
+                        poblarDiagnosticos(data);     // ✅ Esta función debe estar definida antes
+                        aplicarFiltroEpidemiologico(); // ✅ También esta función debe estar definida antes
 
-                    document.getElementById('filtro-diagnostico')
-                    .addEventListener('change', aplicarFiltroEpidemiologico);
-                });
+                        // Listeners
+                        document.getElementById('filtro-ano')
+                            .addEventListener('change', aplicarFiltroEpidemiologico);
+
+                        document.getElementById('filtro-mes')
+                            .addEventListener('change', aplicarFiltroEpidemiologico);
+
+                        document.getElementById('filtro-semana')
+                            .addEventListener('change', aplicarFiltroEpidemiologico);
+
+                        document.getElementById('filtro-diagnostico')
+                            .addEventListener('change', aplicarFiltroEpidemiologico);
+                    });
+
+                // ✅ Función auxiliar para llenar diagnósticos
+                function poblarDiagnosticos(data) {
+                    const selectDiagnostico = document.getElementById("filtro-diagnostico");
+                    const diagnosticosSet = new Set();
+
+                    data.features.forEach(f => {
+                        const diag = f.properties.Diagnostico;
+                        if (diag && diag.trim() !== "") {
+                            diagnosticosSet.add(diag);
+                        }
+                    });
+
+                    const diagnosticosOrdenados = [...diagnosticosSet].sort();
+
+                    selectDiagnostico.innerHTML = "<option value=''>Todos</option>";
+
+                    diagnosticosOrdenados.forEach(d => {
+                        const option = document.createElement("option");
+                        option.value = d;
+                        option.textContent = d;
+                        selectDiagnostico.appendChild(option);
+                    });
+
+                    if (window.$ && $(selectDiagnostico).select2) {
+                        $(selectDiagnostico).select2({
+                            placeholder: "Buscar diagnóstico",
+                            allowClear: true,
+                            width: "resolve"
+                        });
+                    }
+                }
 
 
             Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
