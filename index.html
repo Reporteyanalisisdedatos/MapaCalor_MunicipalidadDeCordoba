@@ -623,7 +623,7 @@
                     
                     ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
                         document.getElementById(id).addEventListener('change', () => {
-                            mostrarMapaDeCalor(atenciones);
+                            mostrarMapaDeCalor(atencionesData);
                         });
                     });
                     
@@ -631,13 +631,12 @@
                     atencionesData = atenciones;
                     mostrarMapaDeCalor(atenciones);
 
-                    // 👇 Agregá esto:
+                    // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
                     const semanasSet = new Set();
                     atenciones.features.forEach(f => {
                     const semana = f.properties?.SEMANAEPIDEMIOLOGICA;
                     if (semana) semanasSet.add(semana);
                     });
-
                     const filtroSemana = document.getElementById("filtro-semana");
                     [...semanasSet].sort((a, b) => a - b).forEach(sem => {
                     const opt = document.createElement("option");
@@ -646,20 +645,20 @@
                     filtroSemana.appendChild(opt);
                     });
 
-
-                    // 🔽 Agregá esto acá
+                    // LLENAR FILTRO DE DIAGNÓSTICO
                     const diagnosticosSet = new Set();
                     atenciones.features.forEach(f => {
-                        const diag = f.properties?.Diagnostico;
-                        if (diag) diagnosticosSet.add(diag);
+                    const diag = f.properties?.Diagnostico; // Asegurate que sea DIAGNOSTICO
+                    if (diag) diagnosticosSet.add(diag);
                     });
                     const filtroDiagnostico = document.getElementById("filtro-diagnostico");
                     [...diagnosticosSet].sort().forEach(diag => {
-                        const option = document.createElement("option");
-                        option.value = diag;
-                        option.textContent = diag;
-                        filtroDiagnostico.appendChild(option);
+                    const option = document.createElement("option");
+                    option.value = diag;
+                    option.textContent = diag;
+                    filtroDiagnostico.appendChild(option);
                     });
+
 
                     if (!efectores || !efectores.features) {
                         throw new Error("efectores.json no tiene la estructura esperada.");
