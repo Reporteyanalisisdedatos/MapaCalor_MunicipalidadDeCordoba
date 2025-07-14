@@ -427,6 +427,8 @@
     </div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
     <script>
         let efectoresData = null;
         let capaEfectores = null;
@@ -561,10 +563,16 @@
                     if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
                     return res.json();
                 });
+            const fetchAtenciones = fetch("atenciones2025.geojson")
+                .then(res => {
+                    if (!res.ok) throw new Error(`Error al cargar atenciones.geojson: ${res.status}`);
+                    return res.json();
+            });
 
 
-            Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores])
-                .then(([efectores, zonasGeo, zonasValores]) => {
+            Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
+                .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
+                    mostrarMapaDeCalor(atenciones);
                     if (!efectores || !efectores.features) {
                         throw new Error("efectores.json no tiene la estructura esperada.");
                     }
@@ -1100,6 +1108,33 @@
 
                 capaEfectores.addTo(map);
             }
+            let capaCalor = null;
+
+            function mostrarMapaDeCalor(geojson) {
+                if (capaCalor) {
+                    map.removeLayer(capaCalor);
+                }
+
+                const puntosCalor = geojson.features.map(f => {
+                    const [lng, lat] = f.geometry.coordinates;
+                    const intensidad = f.properties.total_atenciones || 1;
+                    return [lat, lng, intensidad]; // formato [lat, lng, weight]
+                });
+
+                capaCalor = L.heatLayer(puntosCalor, {
+                    radius: 25,
+                    blur: 20,
+                    maxZoom: 17,
+                    gradient: {
+                        0.2: "#DFF6D8",   // Verde más claro
+                        0.4: "#B8E986",   // Verde
+                        0.6: "#FFFF8C",   // Amarillo
+                        0.8: "#F29E2E",   // Naranja
+                        1.0: "#D7191C"    // Rojo
+                    }
+                }).addTo(map);
+            }
+
 
 
             function crearPopupCentroSalud(datos) {
