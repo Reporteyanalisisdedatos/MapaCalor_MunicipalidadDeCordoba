@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Mapa Sanitario - Provincia de Córdoba</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
     <style>
         #leyenda-iconos {
             background: white;
@@ -33,23 +34,23 @@
         }
 
         #header-blue {
-        background-color: #005288;
-        color: white;
-        padding: 20px 20px;
-        min-height: 50px;
-        font-family: sans-serif;
-        position: relative;  /* Necesario para centrar el título */
+            background-color: #005288;
+            color: white;
+            padding: 20px 20px;
+            min-height: 50px;
+            font-family: sans-serif;
+            position: relative;  /* Necesario para centrar el título */
         }
 
         #header-title {
-        font-size: 24px;
-        font-weight: bold;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        top: 50%;
-        transform: translate(-50%, -50%);
-        white-space: nowrap;
+            font-size: 24px;
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 50%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
         }
 
         #header-logos {
@@ -245,16 +246,16 @@
         }
         
         /* Estilos para el botón de retorno - AJUSTADOS */
-        #return-button {
-        width: 30px;
-        height: 27px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        margin: 0;
-        margin-top: 5px; /* 🔧 Ajuste fino para alinear con el select */
+            #return-button {
+            width: 30px;
+            height: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin: 0;
+            margin-top: 5px; /* 🔧 Ajuste fino para alinear con el select */
         }
 
         #return-button:hover {
@@ -262,12 +263,12 @@
         }
 
         #return-button img {
-        width: 50px;
-        height: 50px;
-        display: block;
-        margin: 0;
-        padding: 0;
-        mix-blend-mode: multiply;
+            width: 50px;
+            height: 50px;
+            display: block;
+            margin: 0;
+            padding: 0;
+            mix-blend-mode: multiply;
         }
 
         /* Estilos para las etiquetas de nombre sobre las capas */
@@ -340,6 +341,9 @@
             margin-right: 8px;
         }
 
+        
+
+
     </style>
 </head>
 <body>
@@ -405,6 +409,49 @@
             <label><input type="checkbox" id="chkENTEMETROPOLITANO" /> ENTE METROPOLITANO</label>
             </div>
         </div>
+        <!-- 5. FILTROS DE CALOR -->
+        <div class="filter-group">
+        <div class="filter-group-title">Filtros de Mapa de Calor</div>
+        <div class="filter-group-content">
+            <label>
+            <select id="filtro-anio">
+                <option value="">-- Año --</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+            </select>
+            </label>
+            <label>
+            <select id="filtro-mes">
+                <option value="">-- Mes --</option>
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+            </label>
+            <label>
+            <select id="filtro-semana">
+                <option value="">-- Semana Epidemiológica --</option>
+                ${Array.from({ length: 52 }, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
+            </select>
+            </label>
+            <label>
+            <select id="filtro-diagnostico">
+                <option value="">-- Diagnóstico --</option>
+                <!-- opciones dinámicas -->
+            </select>
+            </label>
+        </div>
+        </div>
+
 
         </div>
 
@@ -567,12 +614,32 @@
                 .then(res => {
                     if (!res.ok) throw new Error(`Error al cargar atenciones.geojson: ${res.status}`);
                     return res.json();
-            });
+           });
 
 
             Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
                 .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
                     mostrarMapaDeCalor(atenciones);
+                    ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
+                        document.getElementById(id).addEventListener('change', () => {
+                            mostrarMapaDeCalor(atenciones);
+                        });
+                    });
+
+                    // 🔽 Agregá esto acá
+                    const diagnosticosSet = new Set();
+                    atenciones.features.forEach(f => {
+                        const diag = f.properties?.Diagnostico;
+                        if (diag) diagnosticosSet.add(diag);
+                    });
+                    const filtroDiagnostico = document.getElementById("filtro-diagnostico");
+                    [...diagnosticosSet].sort().forEach(diag => {
+                        const option = document.createElement("option");
+                        option.value = diag;
+                        option.textContent = diag;
+                        filtroDiagnostico.appendChild(option);
+                    });
+
                     if (!efectores || !efectores.features) {
                         throw new Error("efectores.json no tiene la estructura esperada.");
                     }
@@ -1111,14 +1178,31 @@
             let capaCalor = null;
 
             function mostrarMapaDeCalor(geojson) {
-                if (capaCalor) {
-                    map.removeLayer(capaCalor);
-                }
+                if (capaCalor) map.removeLayer(capaCalor);
 
-                const puntosCalor = geojson.features.map(f => {
+                const anio = document.getElementById('filtro-anio').value;
+                const mes = document.getElementById('filtro-mes').value;
+                const semana = document.getElementById('filtro-semana').value;
+                const diagnostico = document.getElementById('filtro-diagnostico').value;
+
+                const pacientesUnicos = new Map(); // clave: cuil, valor: feature
+
+                geojson.features.forEach(f => {
+                    const props = f.properties;
+                    const cuil = props?.CUIL;
+                    if (!cuil || pacientesUnicos.has(cuil)) return;
+
+                    if (anio && props?.Anio != anio) return;
+                    if (mes && props?.Mes != mes) return;
+                    if (semana && props?.Semana != semana) return;
+                    if (diagnostico && props?.Diagnostico !== diagnostico) return;
+
+                    pacientesUnicos.set(cuil, f);
+                });
+
+                const puntosCalor = [...pacientesUnicos.values()].map(f => {
                     const [lng, lat] = f.geometry.coordinates;
-                    const intensidad = f.properties.total_atenciones || 1;
-                    return [lat, lng, intensidad]; // formato [lat, lng, weight]
+                    return [lat, lng, 1];
                 });
 
                 capaCalor = L.heatLayer(puntosCalor, {
@@ -1126,14 +1210,14 @@
                     blur: 20,
                     maxZoom: 17,
                     gradient: {
-                        0.2: "#DFF6D8",   // Verde más claro
-                        0.4: "#B8E986",   // Verde
-                        0.6: "#FFFF8C",   // Amarillo
-                        0.8: "#F29E2E",   // Naranja
-                        1.0: "#D7191C"    // Rojo
+                    0.2: "#DFF6D8",
+                    0.4: "#B8E986",
+                    0.6: "#FFFF8C",
+                    0.8: "#F29E2E",
+                    1.0: "#D7191C"
                     }
                 }).addTo(map);
-            }
+                }
 
 
 
@@ -1264,6 +1348,16 @@
     
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+        <script>
+        new Choices("#filtro-diagnostico", {
+            searchEnabled: true,
+            itemSelectText: '',
+            shouldSort: false,
+            placeholder: true,
+            placeholderValue: "Buscar diagnóstico...",
+        });
+        </script>
 
 </body>
 </html>
