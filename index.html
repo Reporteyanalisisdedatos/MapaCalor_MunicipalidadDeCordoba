@@ -1183,73 +1183,52 @@
             let capaCalor = null;
 
             function mostrarMapaDeCalor(geojson) {
-    if (capaCalor) map.removeLayer(capaCalor);
+                    if (capaCalor) map.removeLayer(capaCalor);
 
-    const anio = document.getElementById('filtro-anio').value;
-    const mes = document.getElementById('filtro-mes').value;
-    const semana = document.getElementById('filtro-semana').value;
-    const diagnostico = document.getElementById('filtro-diagnostico').value;
+                    const anio = document.getElementById('filtro-anio').value;
+                    const mes = document.getElementById('filtro-mes').value;
+                    const semana = document.getElementById('filtro-semana').value;
+                    const diagnostico = document.getElementById('filtro-diagnostico').value;
 
-    const pacientesUnicos = new Map(); // clave: Documento, valor: feature
+                    const pacientesUnicos = new Map(); // clave: Documento, valor: feature
 
-    geojson.features.forEach(f => {
-        const props = f.properties;
-        const geom = f.geometry;
-        const doc = props?.Documento;
+                    geojson.features.forEach(f => {
+                        const props = f.properties;
+                        const geom = f.geometry;
+                        const doc = props?.Documento;
 
-        if (!doc || pacientesUnicos.has(doc)) return;
-        if (!geom || geom.type !== "Point" || !Array.isArray(geom.coordinates)) return;
+                        if (!doc || pacientesUnicos.has(doc)) return;
+                        if (!geom || geom.type !== "Point" || !Array.isArray(geom.coordinates)) return;
 
-        const [lng, lat] = geom.coordinates;
-        if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
+                        const [lng, lat] = geom.coordinates;
+                        if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
 
-        if (anio && props?.AÑO != anio) return;
-        if (mes && props?.MES != mes) return;
-        if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
-        if (diagnostico && props?.Diagnostico !== diagnostico) return;
+                        if (anio && props?.AÑO != anio) return;
+                        if (mes && props?.MES != mes) return;
+                        if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
+                        if (diagnostico && props?.Diagnostico !== diagnostico) return;
 
-        pacientesUnicos.set(doc, f);
-    });
+                        pacientesUnicos.set(doc, f);
+                    });
 
-    const puntosCalor = [...pacientesUnicos.values()].map(f => {
-        const [lng, lat] = f.geometry.coordinates;
-        return [lat, lng, 1];
-    });
+                    const puntosCalor = [...pacientesUnicos.values()].map(f => {
+                        const [lng, lat] = f.geometry.coordinates;
+                        return [lat, lng, 1];
+                    });
 
-    capaCalor = L.heatLayer(puntosCalor, {
-        radius: 25,
-        blur: 20,
-        maxZoom: 17,
-        gradient: {
-            0.2: "#DFF6D8",
-            0.4: "#B8E986",
-            0.6: "#FFFF8C",
-            0.8: "#F29E2E",
-            1.0: "#D7191C"
-        }
-    }).addTo(map);
-});
-
-                const puntosCalor = [...pacientesUnicos.values()].map(f => {
-                    const [lng, lat] = f.geometry.coordinates;
-                    return [lat, lng, 1];
-                });
-
-                capaCalor = L.heatLayer(puntosCalor, {
-                    radius: 25,
-                    blur: 20,
-                    maxZoom: 17,
-                    gradient: {
-                    0.2: "#DFF6D8",
-                    0.4: "#B8E986",
-                    0.6: "#FFFF8C",
-                    0.8: "#F29E2E",
-                    1.0: "#D7191C"
-                    }
-                }).addTo(map);
-                }
-
-
+                    capaCalor = L.heatLayer(puntosCalor, {
+                        radius: 25,
+                        blur: 20,
+                        maxZoom: 17,
+                        gradient: {
+                            0.2: "#DFF6D8",
+                            0.4: "#B8E986",
+                            0.6: "#FFFF8C",
+                            0.8: "#F29E2E",
+                            1.0: "#D7191C"
+                        }
+                    }).addTo(map);
+            }
 
             function crearPopupCentroSalud(datos) {
                 const tipo = (datos.tipo || '').toLowerCase();
