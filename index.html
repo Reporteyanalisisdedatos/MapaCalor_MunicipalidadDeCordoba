@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <title>Mapa Sanitario - Provincia de Córdoba</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-    <style>
+<meta charset="utf-8"/>
+<title>Mapa Sanitario - Provincia de Córdoba</title>
+<link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet"/>
+<style>
         #leyenda-iconos {
             background: white;
             padding: 6px 10px;
@@ -347,137 +348,120 @@
     </style>
 </head>
 <body>
-    <div id="header-blue">
-            <div id="header-title">Mapa Sanitario - Municipalidad de Córdoba</div>
-            <div id="header-logos">
-                <div class="logo-container">
-                    <img src="SecreB.png" alt="Secretaría de Salud" />
-                </div>
-                <div class="logo-container">
-                    <img src="HorizontalCTWhite.png" alt="Coordinación Tecnológica" />
-                </div>
-            </div>
-        </div>
+<div id="header-blue">
+<div id="header-title">Mapa Sanitario - Municipalidad de Córdoba</div>
+<div id="header-logos">
+<div class="logo-container">
+<img alt="Secretaría de Salud" src="SecreB.png"/>
+</div>
+<div class="logo-container">
+<img alt="Coordinación Tecnológica" src="HorizontalCTWhite.png"/>
+</div>
+</div>
+</div>
+<div id="header-bars">
+<div class="bar" style="background-color: #FFDA63;"></div>
+<div class="bar" style="background-color: #DC3545;"></div>
+<div class="bar" style="background-color: #007BFF;"></div>
+</div>
 
-    
-        <div id="header-bars">
-            <div class="bar" style="background-color: #FFDA63;"></div>
-            <div class="bar" style="background-color: #DC3545;"></div>
-            <div class="bar" style="background-color: #007BFF;"></div>
-        </div>
-    </div>
-
-    <div id="left-panel">
-        <!-- 2. BUSCADOR -->
-        <div id="search-container">
-            <input type="text" id="search-efector" placeholder="Buscar Efector..." />
-        </div>
-
-        <!-- 1. LEYENDA -->
-        <div id="leyenda-iconos">
-            <div><img src="CS.png"> Centros de Salud</div>
-            <div><img src="HOSP-HPA-PLM.png"> Hospitales Municipales, HPA, Padre La Monaca</div>
-            <div><img src="EFECTORES.png"> Efectores Municipales</div>
-        </div>
-
-        <!-- 3. FILTROS PROVINCIA -->
-        <div class="filter-group">
-            <div class="filter-group-title">Filtros a Nivel Provincia</div>
-            <div class="filter-group-content">
-            <label><input type="checkbox" id="chkDEPARTAMENTOS" /> DEPARTAMENTOS</label>
-            <label><input type="checkbox" id="chkLOCALIDADES" /> LOCALIDADES</label>
-            </div>
-        </div>
-
-        <!-- 4. FILTROS CAPITAL -->
-        <div class="filter-group">
-            <div class="filter-group-title">Filtros a Nivel Capital</div>
-            <div class="filter-group-content">
-            <label for="selZONA">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                <div id="return-button" style="display: none; cursor: pointer;">
-                    <img src="atras.png" alt="Volver" style="width: 22px; height: 22px;" />
-                </div>
-                <select id="selZONA">
-                    <option value="">-- Seleccionar Zona --</option>
-                    <option value="all">Todas las Zonas</option>
-                </select>
-                </div>
-            </label>
-            <label><input type="checkbox" id="chkCIRCUITO" /> CIRCUITOS</label>
-            <label><input type="checkbox" id="chkSECCIONALES" /> SECCIONALES</label>
-            <label><input type="checkbox" id="chkENTEMETROPOLITANO" /> ENTE METROPOLITANO</label>
-            </div>
-        </div>
-        <!-- 5. FILTROS DE CALOR -->
-        <div class="filter-group">
-        <div class="filter-group-title">Filtros de Epidemiología</div>
-        <div class="filter-group-content">
-            <label>
-            <select id="filtro-anio">
-                <option value="">-- Año --</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
+<div id="left-panel">
+<!-- 2. BUSCADOR -->
+<div id="search-container">
+<input id="search-efector" placeholder="Buscar Efector..." type="text"/>
+</div>
+<!-- 1. LEYENDA -->
+<div id="leyenda-iconos">
+<div><img src="CS.png"/> Centros de Salud</div>
+<div><img src="HOSP-HPA-PLM.png"/> Hospitales Municipales, HPA, Padre La Monaca</div>
+<div><img src="EFECTORES.png"/> Efectores Municipales</div>
+</div>
+<!-- 3. FILTROS PROVINCIA -->
+<div class="filter-group">
+<div class="filter-group-title">Filtros a Nivel Provincia</div>
+<div class="filter-group-content">
+<label><input id="chkDEPARTAMENTOS" type="checkbox"/> DEPARTAMENTOS</label>
+<label><input id="chkLOCALIDADES" type="checkbox"/> LOCALIDADES</label>
+</div>
+</div>
+<!-- 4. FILTROS CAPITAL -->
+<div class="filter-group">
+<div class="filter-group-title">Filtros a Nivel Capital</div>
+<div class="filter-group-content">
+<label for="selZONA">
+<div style="display: flex; align-items: center; gap: 6px;">
+<div id="return-button" style="display: none; cursor: pointer;">
+<img alt="Volver" src="atras.png" style="width: 22px; height: 22px;">
+</img></div>
+<select id="selZONA">
+<option value="">-- Seleccionar Zona --</option>
+<option value="all">Todas las Zonas</option>
+</select>
+</div>
+</label>
+<label><input id="chkCIRCUITO" type="checkbox"/> CIRCUITOS</label>
+<label><input id="chkSECCIONALES" type="checkbox"/> SECCIONALES</label>
+<label><input id="chkENTEMETROPOLITANO" type="checkbox"/> ENTE METROPOLITANO</label>
+</div>
+</div>
+<!-- 5. FILTROS DE CALOR -->
+<div class="filter-group">
+<div class="filter-group-title">Filtros de Epidemiología</div>
+<div class="filter-group-content">
+<label>
+<select id="filtro-anio">
+<option value="">-- Año --</option>
+<option value="2024">2024</option>
+<option value="2025">2025</option>
+</select>
+</label>
+<label>
+<select id="filtro-mes">
+<option value="">-- Mes --</option>
+<option value="1">Enero</option>
+<option value="2">Febrero</option>
+<option value="3">Marzo</option>
+<option value="4">Abril</option>
+<option value="5">Mayo</option>
+<option value="6">Junio</option>
+<option value="7">Julio</option>
+<option value="8">Agosto</option>
+<option value="9">Septiembre</option>
+<option value="10">Octubre</option>
+<option value="11">Noviembre</option>
+<option value="12">Diciembre</option>
+</select>
+</label>
+<label>
+<select id="filtro-semana">
+<option value="">-- Semana Epidemiológica --</option>
+                ${Array.from({ length: 52 }, (_, i) =&gt; `<option value="${i+1}">${i+1}</option>`).join('')}
             </select>
-            </label>
-            <label>
-            <select id="filtro-mes">
-                <option value="">-- Mes --</option>
-                <option value="1">Enero</option>
-                <option value="2">Febrero</option>
-                <option value="3">Marzo</option>
-                <option value="4">Abril</option>
-                <option value="5">Mayo</option>
-                <option value="6">Junio</option>
-                <option value="7">Julio</option>
-                <option value="8">Agosto</option>
-                <option value="9">Septiembre</option>
-                <option value="10">Octubre</option>
-                <option value="11">Noviembre</option>
-                <option value="12">Diciembre</option>
-            </select>
-            </label>
-            <label>
-            <select id="filtro-semana">
-                <option value="">-- Semana Epidemiológica --</option>
-                ${Array.from({ length: 52 }, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
-            </select>
-            </label>
-            <label>
-            <select id="filtro-diagnostico">
-                <option value="">-- Diagnóstico --</option>
-                <!-- opciones dinámicas -->
-            </select>
-            </label>
-        </div>
-        </div>
-
-
-        </div>
-
-    <div id="map"></div>
-
-    <div id="zona-info">
-        <div
-            id="zona-titulo"
-            style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #005288;"
-        >
+</label>
+<label>
+<select id="filtro-diagnostico">
+<option value="">-- Diagnóstico --</option>
+<!-- opciones dinámicas -->
+</select>
+</label>
+</div>
+</div>
+</div>
+<div id="map"></div>
+<div id="zona-info">
+<div id="zona-titulo" style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #005288;">
             Población de Zona
         </div>
-        <div id="zona-datos"></div>
-    </div>
-
-    <div id="all-zones-summary-panel">
-        <h3>Población por Zona</h3>
-        <div id="total-capital-population" class="total-population" style="display: none;"></div>
-        <ul id="all-zones-list"></ul>
-    </div>
-
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-
-    <script>
-        let capaCalor;
+<div id="zona-datos"></div>
+</div>
+<div id="all-zones-summary-panel">
+<h3>Población por Zona</h3>
+<div class="total-population" id="total-capital-population" style="display: none;"></div>
+<ul id="all-zones-list"></ul>
+</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script>
         let atencionesData = null;
         let efectoresData = null;
         let capaEfectores = null;
@@ -1199,39 +1183,56 @@
             let capaCalor = null;
 
             function mostrarMapaDeCalor(geojson) {
-                if (capaCalor) map.removeLayer(capaCalor);
+    if (capaCalor) map.removeLayer(capaCalor);
 
-                const anio = document.getElementById('filtro-anio').value;
-                const mes = document.getElementById('filtro-mes').value;
-                const semana = document.getElementById('filtro-semana').value;
-                const diagnostico = document.getElementById('filtro-diagnostico').value;
+    const anio = document.getElementById('filtro-anio').value;
+    const mes = document.getElementById('filtro-mes').value;
+    const semana = document.getElementById('filtro-semana').value;
+    const diagnostico = document.getElementById('filtro-diagnostico').value;
 
-                const pacientesUnicos = new Map(); // clave: CUIL, valor: feature
+    const pacientesUnicos = new Map(); // clave: Documento, valor: feature
 
-                geojson.features.forEach(f => {
-                    const props = f.properties;
-                    const geom = f.geometry;
-                    const cuil = props?.CUIL;
+    geojson.features.forEach(f => {
+        const props = f.properties;
+        const geom = f.geometry;
+        const doc = props?.Documento;
 
-                    // Validaciones mínimas
-                    if (!cuil || pacientesUnicos.has(cuil)) return;
-                    if (!geom || geom.type !== "Point" || !Array.isArray(geom.coordinates)) return;
+        if (!doc || pacientesUnicos.has(doc)) return;
+        if (!geom || geom.type !== "Point" || !Array.isArray(geom.coordinates)) return;
 
-                    const [lng, lat] = geom.coordinates;
-                    if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
+        const [lng, lat] = geom.coordinates;
+        if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
 
-                    // Filtros activos
-                    if (anio && props?.Anio != anio) return;
-                    if (mes && props?.MES != mes) return;
-                    if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
-                    if (diagnostico && props?.Diagnostico !== diagnostico) return;
+        if (anio && props?.AÑO != anio) return;
+        if (mes && props?.MES != mes) return;
+        if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
+        if (diagnostico && props?.Diagnostico !== diagnostico) return;
 
-                    pacientesUnicos.set(cuil, f);
-                });
+        pacientesUnicos.set(doc, f);
+    });
+
+    const puntosCalor = [...pacientesUnicos.values()].map(f => {
+        const [lng, lat] = f.geometry.coordinates;
+        return [lat, lng, 1];
+    });
+
+    capaCalor = L.heatLayer(puntosCalor, {
+        radius: 25,
+        blur: 20,
+        maxZoom: 17,
+        gradient: {
+            0.2: "#DFF6D8",
+            0.4: "#B8E986",
+            0.6: "#FFFF8C",
+            0.8: "#F29E2E",
+            1.0: "#D7191C"
+        }
+    }).addTo(map);
+});
 
                 const puntosCalor = [...pacientesUnicos.values()].map(f => {
                     const [lng, lat] = f.geometry.coordinates;
-                    return [lat, lng, 1]; // lat, lng, intensidad
+                    return [lat, lng, 1];
                 });
 
                 capaCalor = L.heatLayer(puntosCalor, {
@@ -1239,14 +1240,14 @@
                     blur: 20,
                     maxZoom: 17,
                     gradient: {
-                        0.2: "#DFF6D8",
-                        0.4: "#B8E986",
-                        0.6: "#FFFF8C",
-                        0.8: "#F29E2E",
-                        1.0: "#D7191C"
+                    0.2: "#DFF6D8",
+                    0.4: "#B8E986",
+                    0.6: "#FFFF8C",
+                    0.8: "#F29E2E",
+                    1.0: "#D7191C"
                     }
                 }).addTo(map);
-            }
+                }
 
 
 
@@ -1377,8 +1378,8 @@
     
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-        <script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script>
         new Choices("#filtro-diagnostico", {
             searchEnabled: true,
             itemSelectText: '',
@@ -1387,6 +1388,5 @@
             placeholderValue: "Buscar diagnóstico...",
         });
         </script>
-
 </body>
 </html>
