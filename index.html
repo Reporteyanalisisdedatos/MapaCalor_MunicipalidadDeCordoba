@@ -6,6 +6,7 @@
 <title>Mapa Sanitario - Provincia de Córdoba</title>
 <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
 <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
 <style>
         #leyenda-iconos {
             background: white;
@@ -650,6 +651,13 @@
                         option.value = diag;
                         option.textContent = diag;
                         filtroDiagnostico.appendChild(option);
+                    });
+
+                    new Choices("#filtro-diagnostico", {
+                        searchEnabled: true,
+                        itemSelectText: '',
+                        placeholder: true,
+                        placeholderValue: 'Buscar diagnóstico...'
                     });
 
 
@@ -1372,6 +1380,7 @@
         });
     </script>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
 <script>
         new Choices("#filtro-diagnostico", {
             searchEnabled: true,
@@ -1381,5 +1390,7 @@
             placeholderValue: "Buscar diagnóstico...",
         });
         </script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
 </body>
 </html>
