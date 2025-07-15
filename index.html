@@ -477,6 +477,7 @@
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
     <script>
+        let capaCalor;
         let atencionesData = null;
         let efectoresData = null;
         let capaEfectores = null;
@@ -1205,16 +1206,24 @@
                 const semana = document.getElementById('filtro-semana').value;
                 const diagnostico = document.getElementById('filtro-diagnostico').value;
 
-                const pacientesUnicos = new Map(); // clave: cuil, valor: feature
+                const pacientesUnicos = new Map(); // clave: CUIL, valor: feature
 
                 geojson.features.forEach(f => {
                     const props = f.properties;
+                    const geom = f.geometry;
                     const cuil = props?.CUIL;
-                    if (!cuil || pacientesUnicos.has(cuil)) return;
 
+                    // Validaciones mínimas
+                    if (!cuil || pacientesUnicos.has(cuil)) return;
+                    if (!geom || geom.type !== "Point" || !Array.isArray(geom.coordinates)) return;
+
+                    const [lng, lat] = geom.coordinates;
+                    if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
+
+                    // Filtros activos
                     if (anio && props?.Anio != anio) return;
-                    if (mes && props?.Mes != mes) return;
-                    if (semana && props?.Semana != semana) return;
+                    if (mes && props?.MES != mes) return;
+                    if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
                     if (diagnostico && props?.Diagnostico !== diagnostico) return;
 
                     pacientesUnicos.set(cuil, f);
@@ -1222,7 +1231,7 @@
 
                 const puntosCalor = [...pacientesUnicos.values()].map(f => {
                     const [lng, lat] = f.geometry.coordinates;
-                    return [lat, lng, 1];
+                    return [lat, lng, 1]; // lat, lng, intensidad
                 });
 
                 capaCalor = L.heatLayer(puntosCalor, {
@@ -1230,14 +1239,14 @@
                     blur: 20,
                     maxZoom: 17,
                     gradient: {
-                    0.2: "#DFF6D8",
-                    0.4: "#B8E986",
-                    0.6: "#FFFF8C",
-                    0.8: "#F29E2E",
-                    1.0: "#D7191C"
+                        0.2: "#DFF6D8",
+                        0.4: "#B8E986",
+                        0.6: "#FFFF8C",
+                        0.8: "#F29E2E",
+                        1.0: "#D7191C"
                     }
                 }).addTo(map);
-                }
+            }
 
 
 
