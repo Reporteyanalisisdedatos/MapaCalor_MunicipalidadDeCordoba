@@ -631,17 +631,25 @@
                     });
 
                     // LLENAR FILTRO DE DIAGNÓSTICO
-                    const diagnosticosSet = new Set();
+                    const diagnosticosMap = new Map();
                     atenciones.features.forEach(f => {
-                    const diag = f.properties?.Diagnostico; // Asegurate que sea DIAGNOSTICO
-                    if (diag) diagnosticosSet.add(diag);
+                        let diag = f.properties?.Diagnostico;
+                        if (!diag) return;
+
+                        let clave = diag.trim().toLowerCase()
+                            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // sin acentos
+
+                        if (!diagnosticosMap.has(clave)) {
+                            diagnosticosMap.set(clave, diag.trim());
+                        }
                     });
+
                     const filtroDiagnostico = document.getElementById("filtro-diagnostico");
-                    [...diagnosticosSet].sort().forEach(diag => {
-                    const option = document.createElement("option");
-                    option.value = diag;
-                    option.textContent = diag;
-                    filtroDiagnostico.appendChild(option);
+                    [...diagnosticosMap.values()].sort().forEach(diag => {
+                        const option = document.createElement("option");
+                        option.value = diag;
+                        option.textContent = diag;
+                        filtroDiagnostico.appendChild(option);
                     });
 
 
@@ -1206,7 +1214,13 @@
                         if (anio && props?.AÑO != anio) return;
                         if (mes && props?.MES != mes) return;
                         if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
-                        if (diagnostico && props?.Diagnostico !== diagnostico) return;
+                        if (diagnostico) {
+                            const diagDato = props?.Diagnostico?.trim().toLowerCase()
+                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                            const diagFiltro = diagnostico.trim().toLowerCase()
+                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                            if (diagDato !== diagFiltro) return;
+                        }
 
                         pacientesUnicos.set(doc, f);
                     });
