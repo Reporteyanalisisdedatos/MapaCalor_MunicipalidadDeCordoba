@@ -1202,6 +1202,15 @@
 
                     const pacientesUnicos = new Map(); // clave: Documento, valor: feature
 
+                    function normalizarTexto(texto) {
+                        return (texto || '')
+                            .toLowerCase()
+                            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita tildes
+                            .replace(/[^a-z0-9\s]/g, '') // elimina símbolos como [ ] etc
+                            .replace(/\s+/g, ' ') // elimina espacios dobles
+                            .trim();
+                    }
+
                     geojson.features.forEach(f => {
                         const props = f.properties;
                         const geom = f.geometry;
@@ -1216,7 +1225,11 @@
                         if (anio && props?.AÑO != anio) return;
                         if (mes && props?.MES != mes) return;
                         if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
-                        if (diagnostico && props?.Diagnostico !== diagnostico) return;
+                        if (diagnostico) {
+                            const diagDato = normalizarTexto(props?.Diagnostico);
+                            const diagFiltro = normalizarTexto(diagnostico);
+                            if (!diagDato.includes(diagFiltro)) return;
+                        }
 
                         pacientesUnicos.set(doc, f);
                     });
