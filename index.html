@@ -451,6 +451,18 @@
 <label>
 <select id="filtro-diagnostico">
 <option value="">-- Diagnóstico --</option>
+<div id="diagnostico-resumen" style="display: none; font-family: sans-serif; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.2); font-size: 14px;">
+    <div style="font-weight: bold; color: #005288; margin-bottom: 8px;">Pacientes por Diagnóstico</div>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background-color: #005288; color: white;">
+                <th style="text-align: left; padding: 4px;">Diagnóstico</th>
+                <th style="text-align: right; padding: 4px;">Pacientes</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-diagnostico-body"></tbody>
+    </table>
+</div>
 <!-- opciones dinámicas -->
 </select>
 </label>
@@ -1252,6 +1264,26 @@
                             1.0: "#FF5252"   // Fucsia fuerte
                         }
                     }).addTo(map);
+                    const diagnosticoResumenDiv = document.getElementById('diagnostico-resumen');
+                    const tablaDiagnosticoBody = document.getElementById('tabla-diagnostico-body');
+
+                    if (diagnostico && puntosCalor.length > 0) {
+                        diagnosticoResumenDiv.style.display = 'block';
+                        tablaDiagnosticoBody.innerHTML = `
+                            <tr>
+                                <td style="padding: 4px;">${diagnostico}</td>
+                                <td style="text-align: right; padding: 4px;">${puntosCalor.length.toLocaleString('es-AR')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px; font-weight: bold;">Total</td>
+                                <td style="text-align: right; font-weight: bold; padding: 4px;">${puntosCalor.length.toLocaleString('es-AR')}</td>
+                            </tr>
+                        `;
+                    } else {
+                        diagnosticoResumenDiv.style.display = 'none';
+                        tablaDiagnosticoBody.innerHTML = '';
+                    }
+
             }
 
             function crearPopupCentroSalud(datos) {
