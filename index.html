@@ -6,10 +6,9 @@
 <title>Mapa Sanitario - Provincia de Córdoba</title>
 <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
 <link href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" rel="stylesheet"/>
-
 <style>
         #leyenda-iconos {
-            background: white; 
+            background: white;
             padding: 6px 10px;
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.3);
@@ -632,32 +631,17 @@
                     });
 
                     // LLENAR FILTRO DE DIAGNÓSTICO
-                    const diagnosticosMap = new Map();
+                    const diagnosticosSet = new Set();
                     atenciones.features.forEach(f => {
-                        let diag = f.properties?.Diagnostico;
-                        if (!diag) return;
-
-                        let clave = diag.trim().toLowerCase()
-                            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // sin acentos
-
-                        if (!diagnosticosMap.has(clave)) {
-                            diagnosticosMap.set(clave, diag.trim());
-                        }
+                    const diag = f.properties?.Diagnostico; // Asegurate que sea DIAGNOSTICO
+                    if (diag) diagnosticosSet.add(diag);
                     });
-
                     const filtroDiagnostico = document.getElementById("filtro-diagnostico");
-                    [...diagnosticosMap.values()].sort().forEach(diag => {
-                        const option = document.createElement("option");
-                        option.value = diag;
-                        option.textContent = diag;
-                        filtroDiagnostico.appendChild(option);
-                    });
-
-                    new Choices("#filtro-diagnostico", {
-                        searchEnabled: true,
-                        itemSelectText: '',
-                        placeholder: true,
-                        placeholderValue: 'Buscar diagnóstico...'
+                    [...diagnosticosSet].sort().forEach(diag => {
+                    const option = document.createElement("option");
+                    option.value = diag;
+                    option.textContent = diag;
+                    filtroDiagnostico.appendChild(option);
                     });
 
 
@@ -1222,13 +1206,7 @@
                         if (anio && props?.AÑO != anio) return;
                         if (mes && props?.MES != mes) return;
                         if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
-                        if (diagnostico) {
-                            const diagDato = props?.Diagnostico?.trim().toLowerCase()
-                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                            const diagFiltro = diagnostico.trim().toLowerCase()
-                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                            if (diagDato !== diagFiltro) return;
-                        }
+                        if (diagnostico && props?.Diagnostico !== diagnostico) return;
 
                         pacientesUnicos.set(doc, f);
                     });
@@ -1379,5 +1357,15 @@
     
         });
     </script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script>
+        new Choices("#filtro-diagnostico", {
+            searchEnabled: true,
+            itemSelectText: '',
+            shouldSort: false,
+            placeholder: true,
+            placeholderValue: "Buscar diagnóstico...",
+        });
+        </script>
 </body>
 </html>
