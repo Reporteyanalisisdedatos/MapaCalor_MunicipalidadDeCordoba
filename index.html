@@ -679,170 +679,62 @@
 
 
 
-            Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
-                .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
-                    
+            Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores])
+                .then(([efectores, zonasGeo, zonasValores]) => {
                     ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
                         document.getElementById(id).addEventListener('change', () => {
                             mostrarMapaDeCalor(atencionesData);
                         });
                     });
-                    
-                    
-                    atencionesData = atenciones;
-                    mostrarMapaDeCalor(atenciones);
+
+                    // ✅ usar la variable global cargada antes
+                    mostrarMapaDeCalor(atencionesData);
 
                     // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
                     const semanasSet = new Set();
-                    atenciones.features.forEach(f => {
-                    const semana = f.properties?.SEMANAEPIDEMIOLOGICA;
-                    if (semana) semanasSet.add(semana);
+                    atencionesData.features.forEach(f => {
+                        const semana = f.properties?.SEMANAEPIDEMIOLOGICA;
+                        if (semana) semanasSet.add(semana);
                     });
                     const filtroSemana = document.getElementById("filtro-semana");
                     [...semanasSet].sort((a, b) => a - b).forEach(sem => {
-                    const opt = document.createElement("option");
-                    opt.value = sem;
-                    opt.textContent = `Semana ${sem}`;
-                    filtroSemana.appendChild(opt);
+                        const opt = document.createElement("option");
+                        opt.value = sem;
+                        opt.textContent = `Semana ${sem}`;
+                        filtroSemana.appendChild(opt);
                     });
 
                     // LLENAR FILTRO DE DIAGNÓSTICO
                     const diagnosticosSet = new Set();
-                    atenciones.features.forEach(f => {
-                    const diag = f.properties?.Diagnostico; // Asegurate que sea DIAGNOSTICO
-                    if (diag) diagnosticosSet.add(diag);
+                    atencionesData.features.forEach(f => {
+                        const diag = f.properties?.Diagnostico;
+                        if (diag) diagnosticosSet.add(diag);
                     });
                     const filtroDiagnostico = document.getElementById("filtro-diagnostico");
                     [...diagnosticosSet].sort().forEach(diag => {
-                    const option = document.createElement("option");
-                    option.value = diag;
-                    option.textContent = diag;
-                    filtroDiagnostico.appendChild(option);
+                        const option = document.createElement("option");
+                        option.value = diag;
+                        option.textContent = diag;
+                        filtroDiagnostico.appendChild(option);
                     });
-
-
-                    if (!efectores || !efectores.features) {
-                        throw new Error("efectores.json no tiene la estructura esperada.");
-                    }
-                    if (!zonasGeo || !zonasGeo.features) {
-                        throw new Error("zonas.geojson no tiene la estructura esperada.");
-                    }
-                    if (!Array.isArray(zonasValores)) {
-                        throw new Error("zonas_valores.json no es un array.");
-                    }
 
                     efectoresData = efectores.features;
                     allZonasFeatures = zonasGeo.features;
                     datosZonasPoblacion = zonasValores;
                     allZonasDataLoaded = true;
 
-                    console.log("✅ efectores cargados:", efectoresData.length);
                     poblarSelectorZonas(allZonasFeatures);
                     mostrarTodosEfectores();
                     selZONA.value = "";
                     zonaInfoPanel.style.display = 'none';
                     allZonesSummaryPanel.style.display = 'none';
                     returnButton.style.display = 'none';
-                
-                     // 👇 PEGÁ ESTO ADENTRO DEL THEN
-                    document.getElementById('search-efector').addEventListener('input', (e) => {
-                        let texto = e.target.value.trim().toLowerCase()
-                            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // saca acentos
-                            .replace(/\bcs\b/g, 'cs') // reemplaza "cs" por "centro de salud";
-                            .replace(/\bcs[\s#°º\-]*/g, 'centro de salud ')
-                            .replace(/n[°º]?\s*/g, '') // reemplaza "n°", "nº", "n " por vacío
-                            .replace(/\s+/g, ' ');     // normaliza espacios dobles
-
-
-                        if (!texto) {
-                            mostrarTodosEfectores();
-                            return;
-                        }
-
-                        const filtrados = efectoresData.filter(feature => {
-                            const nombre = feature.properties?.Centro?.toLowerCase() || '';
-                            const nombreNormalizado = nombre
-                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                                .replace(/\bcs\b/g, 'centro de salud')
-                                .replace(/\bcs\b/g, 'cs') // reemplaza "cs" por "centro de salud";
-                                .replace(/\bcs[\s#°º\-]*/g, 'centro de salud ')
-                                .replace(/n[°º]?\s*/g, '') // reemplaza "n°", "nº", "n " por vacío
-                                .replace(/\s+/g, ' ');     // normaliza espacios dobles
-
-                            return nombreNormalizado.includes(texto);
-                        });
-
-                        if (capaEfectores) {
-                            map.removeLayer(capaEfectores);
-                        }
-
-                        capaEfectores = L.geoJSON(filtrados, {
-                            pointToLayer: (feature, latlng) => {
-                            const props = feature.properties;
-                            const nombre = (props.Centro || '').toLowerCase();
-                            const tipo = (props.Tipo || '').toLowerCase();
-
-                            let icono = iconoCentroSalud;
-
-                            const nombresEspeciales = [
-                                'medicina preventiva',
-                                'dem',
-                                'secretaría de salud',
-                                'secretaria de salud',
-                                'adicciones',
-                                'salud mental',
-                                'pec',
-                                'direccion de calidad alimentaria',
-                                'direccion de emergencias medicas 107',
-                                'direccion de epidemiologia',
-                                'laboratorio farmaceutico municipal',
-                                'telesalud',
-                                'pec los robles',
-                                'dtc villa el libertador',
-                                'pec comercial',
-                                'secretaría de prev. y atenc. comunitaria',
-                                'secretaria de prev. y atenc. comunitaria',
-                                'centro comunitario maldonado'
-                            ];
-
-                            if (tipo.includes('hospital') || tipo.includes('hpa') || nombre.includes('padre la monaca')) {
-                                icono = iconoHPA;
-                            } else if (nombresEspeciales.some(keyword => nombre.includes(keyword))) {
-                                icono = iconoEfectores;
-                            }
-
-                            return L.marker(latlng, { icon: icono });
-                        },
-                            onEachFeature: (feature, layer) => {
-                                const props = feature.properties;
-                                const datosCentro = {
-                                    nombre: props.Centro,
-                                    tipo: props.Tipo,
-                                    direccion: props.Direccion,
-                                    institucion: props.institucion || '',
-                                    poblacion: props.PoblacionTotal ?? 0,
-                                    mujeres: props.Mujeres ?? 0,
-                                    hombres: props.Varones ?? 0,
-                                    sin_cobertura: props.PoblacionSinCobertura ?? 0,
-                                    porcentaje_sin_cobertura: props.PorcentajeSinCobertura ?? 0,
-                                    hogares: props.Hogares ?? 0,
-                                    hogares_nbi: props.HogaresNBI ?? 0
-                                };
-                                layer.bindPopup(crearPopupCentroSalud(datosCentro));
-                            }
-                        }).addTo(map);
-                    });
-
                 })
-                
                 .catch(error => {
                     console.error("Error cargando datos iniciales:", error);
-                    if (error.message.includes("Failed to fetch")) {
-                        alert("No se pudo conectar al servidor. Verificá tu conexión a internet.");
-                    } else {
-                        alert(`Error al cargar datos: ${error.message}`);
-                    }
+                    alert(`Error al cargar datos: ${error.message}`);
                 });
+
 
             const archivosCapas = [
                 'CIRCUITO',
