@@ -505,7 +505,8 @@
         let datosZonasPoblacion = [];
 
         document.addEventListener("DOMContentLoaded", () => {
-                      
+            const urlBase ="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/";
+
             const map = L.map('map').setView([-31.42, -64.18], 11);
 
             const iconoEfectores = L.icon({
@@ -620,6 +621,9 @@
                     if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
                     return res.json();
                 });
+
+            
+
             // NUEVO BLOQUE: Cargar y unir todas las partes de atenciones
             const fetchAtenciones = Promise.all([
             "2024_01_part1", "2024_01_part2",
@@ -847,7 +851,7 @@
                 'LOCALIDADES',
                 'ENTEMETROPOLITANO'
             ];
-            const urlBase ="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/";
+            
 
             archivosCapas.forEach((nombre) => {
                 fetch(`${urlBase}${nombre}.json`)
@@ -1466,5 +1470,3 @@
 
 </body>
 </html>
-
-
