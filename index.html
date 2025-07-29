@@ -783,6 +783,8 @@
 
                     mostrarMapaDeCalor(atencionesData);
 
+                    console.log("✅ atencionesData features:", atencionesData.features?.length);
+
                     const semanasSet = new Set();
                     const diagnosticosSet = new Set();
                     atencionesData.features.forEach(f => {
@@ -1298,7 +1300,6 @@
                     }
 
             }
-
             function crearPopupCentroSalud(datos) {
                 const tipo = (datos.tipo || '').toLowerCase();
                 const nombre = (datos.nombre || '').toLowerCase();
@@ -1380,8 +1381,6 @@
                     `;
                 }
             }
-
-
 
             function porcentaje(parte, total) {
                 if (isNaN(parte) || isNaN(total) || total === 0 || parte === null || total === null) return '0';
