@@ -620,12 +620,7 @@
                     if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
                     return res.json();
                 });
-            const fetchAtenciones = fetch("atenciones2025.geojson")
-                .then(res => {
-                    if (!res.ok) throw new Error(`Error al cargar atenciones.geojson: ${res.status}`);
-                    return res.json();
-           });
-
+            
 
             Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
                 .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
@@ -801,6 +796,62 @@
             ];
             const urlBase ="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/";
 
+            const fetchAtenciones = Promise.all([
+                "2024_01_part1", "2024_01_part2",
+                "2024_02",
+                "2024_03_part1", "2024_03_part2", "2024_03_part3",
+                "2024_04_part1", "2024_04_part2", "2024_04_part3",
+                "2024_05_part1", "2024_05_part2", "2024_05_part3",
+                "2024_06_part1", "2024_06_part2",
+                "2024_07_part1", "2024_07_part2",
+                "2024_08_part1", "2024_08_part2", "2024_08_part3",
+                "2024_09_part1", "2024_09_part2", "2024_09_part3",
+                "2024_10_part1", "2024_10_part2", "2024_10_part3",
+                "2024_11_part1", "2024_11_part2",
+                "2024_12_part1", "2024_12_part2",
+                "2025_01_part1", "2025_01_part2",
+                "2025_02_part1", "2025_02_part2",
+                "2025_03_part1", "2025_03_part2",
+                "2025_04_part1", "2025_04_part2",
+                "2025_05_part1", "2025_05_part2",
+                "2025_06_part1", "2025_06_part2"
+                ].map(n => fetch(`${urlBase}atenciones_${n}.geojson`).then(r => r.json())))
+                .then(partes => {
+                    const todasFeatures = partes.flatMap(p => p.features);
+                    const datosUnificados = { type: "FeatureCollection", features: todasFeatures };
+                    atencionesData = datosUnificados;
+
+                    mostrarMapaDeCalor(atencionesData);
+
+                    const semanasSet = new Set();
+                    const diagnosticosSet = new Set();
+                    atencionesData.features.forEach(f => {
+                    const props = f.properties;
+                    if (props?.SEMANAEPIDEMIOLOGICA) semanasSet.add(props.SEMANAEPIDEMIOLOGICA);
+                    if (props?.Diagnostico) diagnosticosSet.add(props.Diagnostico);
+                    });
+
+                    const filtroSemana = document.getElementById("filtro-semana");
+                    [...semanasSet].sort((a, b) => a - b).forEach(sem => {
+                    const opt = document.createElement("option");
+                    opt.value = sem;
+                    opt.textContent = `Semana ${sem}`;
+                    filtroSemana.appendChild(opt);
+                    });
+
+                    const filtroDiagnostico = document.getElementById("filtro-diagnostico");
+                    [...diagnosticosSet].sort().forEach(diag => {
+                    const opt = document.createElement("option");
+                    opt.value = diag;
+                    opt.textContent = diag;
+                    filtroDiagnostico.appendChild(opt);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error al cargar atenciones divididas:", error);
+                    alert("No se pudieron cargar los archivos de atenciones.");
+                });
+                
             archivosCapas.forEach((nombre) => {
                 fetch(`${urlBase}${nombre}.json`)
                     .then((res) => {
@@ -1418,4 +1469,3 @@
 
 </body>
 </html>
-
