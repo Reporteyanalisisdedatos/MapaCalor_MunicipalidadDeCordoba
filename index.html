@@ -621,71 +621,31 @@
                     return res.json();
                 });
             
+                Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores])
+                    .then(([efectores, zonasGeo, zonasValores]) => {
+                        if (!efectores?.features) throw new Error("efectores.json no tiene la estructura esperada.");
+                        if (!zonasGeo?.features) throw new Error("zonas.geojson no tiene la estructura esperada.");
+                        if (!Array.isArray(zonasValores)) throw new Error("zonas_valores.json no es un array.");
 
-            Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, fetchAtenciones])
-                .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
-                    
-                    ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
-                        document.getElementById(id).addEventListener('change', () => {
-                            mostrarMapaDeCalor(atencionesData);
-                        });
-                    });
-                    
-                    
-                    atencionesData = atenciones;
-                    mostrarMapaDeCalor(atenciones);
+                        efectoresData = efectores.features;
+                        allZonasFeatures = zonasGeo.features;
+                        datosZonasPoblacion = zonasValores;
+                        allZonasDataLoaded = true;
 
-                    // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
-                    const semanasSet = new Set();
-                    atenciones.features.forEach(f => {
-                    const semana = f.properties?.SEMANAEPIDEMIOLOGICA;
-                    if (semana) semanasSet.add(semana);
-                    });
-                    const filtroSemana = document.getElementById("filtro-semana");
-                    [...semanasSet].sort((a, b) => a - b).forEach(sem => {
-                    const opt = document.createElement("option");
-                    opt.value = sem;
-                    opt.textContent = `Semana ${sem}`;
-                    filtroSemana.appendChild(opt);
-                    });
+                        console.log("✅ efectores cargados:", efectoresData.length);
+                        poblarSelectorZonas(allZonasFeatures);
+                        mostrarTodosEfectores();
+                        selZONA.value = "";
+                        zonaInfoPanel.style.display = 'none';
+                        allZonesSummaryPanel.style.display = 'none';
+                        returnButton.style.display = 'none';
 
-                    // LLENAR FILTRO DE DIAGNÓSTICO
-                    const diagnosticosSet = new Set();
-                    atenciones.features.forEach(f => {
-                    const diag = f.properties?.Diagnostico; // Asegurate que sea DIAGNOSTICO
-                    if (diag) diagnosticosSet.add(diag);
-                    });
-                    const filtroDiagnostico = document.getElementById("filtro-diagnostico");
-                    [...diagnosticosSet].sort().forEach(diag => {
-                    const option = document.createElement("option");
-                    option.value = diag;
-                    option.textContent = diag;
-                    filtroDiagnostico.appendChild(option);
-                    });
-
-
-                    if (!efectores || !efectores.features) {
-                        throw new Error("efectores.json no tiene la estructura esperada.");
-                    }
-                    if (!zonasGeo || !zonasGeo.features) {
-                        throw new Error("zonas.geojson no tiene la estructura esperada.");
-                    }
-                    if (!Array.isArray(zonasValores)) {
-                        throw new Error("zonas_valores.json no es un array.");
-                    }
-
-                    efectoresData = efectores.features;
-                    allZonasFeatures = zonasGeo.features;
-                    datosZonasPoblacion = zonasValores;
-                    allZonasDataLoaded = true;
-
-                    console.log("✅ efectores cargados:", efectoresData.length);
-                    poblarSelectorZonas(allZonasFeatures);
-                    mostrarTodosEfectores();
-                    selZONA.value = "";
-                    zonaInfoPanel.style.display = 'none';
-                    allZonesSummaryPanel.style.display = 'none';
-                    returnButton.style.display = 'none';
+                        // 👇 Escucha los cambios de filtros (el dataset se carga aparte en fetchAtenciones)
+                        ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
+                            document.getElementById(id).addEventListener('change', () => {
+                                mostrarMapaDeCalor(atencionesData);
+                            });
+                        });            
                 
                      // 👇 PEGÁ ESTO ADENTRO DEL THEN
                     document.getElementById('search-efector').addEventListener('input', (e) => {
@@ -851,7 +811,7 @@
                     console.error("Error al cargar atenciones divididas:", error);
                     alert("No se pudieron cargar los archivos de atenciones.");
                 });
-                
+
             archivosCapas.forEach((nombre) => {
                 fetch(`${urlBase}${nombre}.json`)
                     .then((res) => {
