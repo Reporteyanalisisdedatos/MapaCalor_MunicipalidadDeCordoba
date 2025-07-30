@@ -777,7 +777,9 @@
                 "2025_06_part1", "2025_06_part2"
                 ].map(n => fetch(`${urlBase}atenciones_${n}.geojson`).then(r => r.json())))
                 .then(partes => {
-                    const todasFeatures = partes.flatMap(p => p.features);
+                    const todasFeatures = partes
+                        .filter(p => p && Array.isArray(p.features))   // ✅ FILTRA archivos sin `.features`
+                        .flatMap(p => p.features);
                     const datosUnificados = { type: "FeatureCollection", features: todasFeatures };
                     atencionesData = datosUnificados;
 
