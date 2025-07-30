@@ -643,7 +643,11 @@
                         // 👇 Escucha los cambios de filtros (el dataset se carga aparte en fetchAtenciones)
                         ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
                             document.getElementById(id).addEventListener('change', () => {
-                                mostrarMapaDeCalor(atencionesData);
+                                if (window.atencionesOriginal) {
+                                    mostrarMapaDeCalor(window.atencionesOriginal);
+                                } else {
+                                    console.warn("⚠️ Dataset original no cargado.");
+                                }
                             });
                         });            
                 
@@ -781,9 +785,10 @@
                         .filter(p => p && Array.isArray(p.features))   // ✅ FILTRA archivos sin `.features`
                         .flatMap(p => p.features);
                     const datosUnificados = { type: "FeatureCollection", features: todasFeatures };
+                    window.atencionesOriginal = datosUnificados;  // 👈 guardamos el dataset completo
                     atencionesData = datosUnificados;
-
                     mostrarMapaDeCalor(atencionesData);
+
 
                     console.log("✅ atencionesData features:", atencionesData.features?.length);
 
