@@ -444,22 +444,9 @@
 <!-- opciones dinámicas -->
 </select>
 </label>
-<div id="diagnostico-resumen" style="display: none; font-family: sans-serif; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.2); font-size: 14px;">
-    <div style="font-weight: bold; color: #005288; margin-bottom: 8px;">Pacientes por Diagnóstico</div>
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-            <tr style="background-color: #005288; color: white;">
-                <th style="text-align: left; padding: 4px;">Diagnóstico</th>
-                <th style="text-align: right; padding: 4px;">Pacientes</th>
-            </tr>
-        </thead>
-        <tbody id="tabla-diagnostico-body"></tbody>
-    </table>
-</div>
-<!-- opciones dinámicas -->
 </div>
 </div>
-
+</div>
 <div id="map"></div>
 <div id="zona-info">
 <div id="zona-titulo" style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #005288;">
@@ -471,7 +458,6 @@
 <h3>Población por Zona</h3>
 <div class="total-population" id="total-capital-population" style="display: none;"></div>
 <ul id="all-zones-list"></ul>
-</div>
 </div>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
