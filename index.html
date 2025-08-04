@@ -161,21 +161,11 @@
             border: 1px solid #ccc;
         }
 
-        .filter-group-content select {
-            width: 100%;
-            max-width: 220px;
-            box-sizing: border-box;
-        }
-        .choices {
-            max-width: 220px !important;
-        }
-      
-
         #map {
             position: absolute;
             top: 210px; /* altura total del header + filtros */
             bottom: 0;
-            left: 360px;
+            left: 360;
             right: 0;
             z-index: 1; /* para que no quede tapado por los filtros */
         }
@@ -322,7 +312,15 @@
             gap: 20px;
         }
 
-        
+        #map {
+            position: absolute;
+            top: 95px;
+            bottom: 0;
+            left: 330px; /* se corre para dejar lugar al panel */
+            right: 0;
+            z-index: 1;
+        }
+
         #search-container {
             margin-bottom: 15px;
         }
@@ -344,28 +342,12 @@
             margin-right: 8px;
         }
 
-        #main-content {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
         
 
 
     </style>
 </head>
 <body>
-<div id="main-content">
 <div id="header-blue">
 <div id="header-title">Mapa Sanitario - Municipalidad de Córdoba</div>
 <div id="header-logos">
@@ -457,9 +439,10 @@
             </select>
 </label>
 <label>
-    <select id="filtro-diagnostico">
-        <option value="">-- Diagnóstico --</option>
-    </select>
+<select id="filtro-diagnostico">
+<option value="">-- Diagnóstico --</option>
+<!-- opciones dinámicas -->
+</select>
 </label>
 <div id="diagnostico-resumen" style="display: none; font-family: sans-serif; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.2); font-size: 14px;">
     <div style="font-weight: bold; color: #005288; margin-bottom: 8px;">Pacientes por Diagnóstico</div>
@@ -627,36 +610,118 @@
                     if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
                     return res.json();
                 });
-            
-                Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores])
-                    .then(([efectores, zonasGeo, zonasValores]) => {
-                        if (!efectores?.features) throw new Error("efectores.json no tiene la estructura esperada.");
-                        if (!zonasGeo?.features) throw new Error("zonas.geojson no tiene la estructura esperada.");
-                        if (!Array.isArray(zonasValores)) throw new Error("zonas_valores.json no es un array.");
+            // Archivos GeoJSON divididos por mes y parte
+            const archivosAtenciones = [
+                // 2024
+                "atenciones_2024_01_part1.geojson", "atenciones_2024_01_part2.geojson",
+                "atenciones_2024_02.geojson",
+                "atenciones_2024_03_part1.geojson", "atenciones_2024_03_part2.geojson", "atenciones_2024_03_part3.geojson",
+                "atenciones_2024_04_part1.geojson", "atenciones_2024_04_part2.geojson", "atenciones_2024_04_part3.geojson",
+                "atenciones_2024_05_part1.geojson", "atenciones_2024_05_part2.geojson", "atenciones_2024_05_part3.geojson",
+                "atenciones_2024_06_part1.geojson", "atenciones_2024_06_part2.geojson",
+                "atenciones_2024_07_part1.geojson", "atenciones_2024_07_part2.geojson",
+                "atenciones_2024_08_part1.geojson", "atenciones_2024_08_part2.geojson", "atenciones_2024_08_part3.geojson",
+                "atenciones_2024_09_part1.geojson", "atenciones_2024_09_part2.geojson", "atenciones_2024_09_part3.geojson",
+                "atenciones_2024_10_part1.geojson", "atenciones_2024_10_part2.geojson", "atenciones_2024_10_part3.geojson",
+                "atenciones_2024_11_part1.geojson", "atenciones_2024_11_part2.geojson",
+                "atenciones_2024_12_part1.geojson", "atenciones_2024_12_part2.geojson",
 
-                        efectoresData = efectores.features;
-                        allZonasFeatures = zonasGeo.features;
-                        datosZonasPoblacion = zonasValores;
-                        allZonasDataLoaded = true;
+                // 2025
+                "atenciones_2025_01_part1.geojson", "atenciones_2025_01_part2.geojson",
+                "atenciones_2025_02_part1.geojson", "atenciones_2025_02_part2.geojson",
+                "atenciones_2025_03_part1.geojson", "atenciones_2025_03_part2.geojson",
+                "atenciones_2025_04_part1.geojson", "atenciones_2025_04_part2.geojson",
+                "atenciones_2025_05_part1.geojson", "atenciones_2025_05_part2.geojson",
+                "atenciones_2025_06_part1.geojson", "atenciones_2025_06_part2.geojson"
+                ];
 
-                        console.log("✅ efectores cargados:", efectoresData.length);
-                        poblarSelectorZonas(allZonasFeatures);
-                        mostrarTodosEfectores();
-                        selZONA.value = "";
-                        zonaInfoPanel.style.display = 'none';
-                        allZonesSummaryPanel.style.display = 'none';
-                        returnButton.style.display = 'none';
+            // urlBase ya está declarado más arriba, así que solo lo usamos aquí
 
-                        // 👇 Escucha los cambios de filtros (el dataset se carga aparte en fetchAtenciones)
-                        ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
-                            document.getElementById(id).addEventListener('change', () => {
-                                if (window.atencionesOriginal) {
-                                    mostrarMapaDeCalor(window.atencionesOriginal);
-                                } else {
-                                    console.warn("⚠️ Dataset original no cargado.");
-                                }
-                            });
-                        });            
+            function cargarTodosLosGeojson() {
+                return Promise.all(
+                    archivosAtenciones.map(nombre =>
+                    fetch(urlBase + nombre)
+                        .then(res => {
+                        if (!res.ok) throw new Error(`Error al cargar ${nombre}: ${res.status}`);
+                        return res.json();
+                        })
+                        .catch(err => {
+                        console.warn(`⚠️ ${nombre} falló al cargar:`, err);
+                        return { features: [] }; // Evita romper el resto
+                        })
+                    )
+                ).then(arrGeojson => {
+                    const todasLasFeatures = arrGeojson.flatMap(g => g.features || []);
+                    return { type: "FeatureCollection", features: todasLasFeatures };
+                });
+            }
+
+
+
+            Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, cargarTodosLosGeojson()])
+                .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
+                    
+                    ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
+                        document.getElementById(id).addEventListener('change', () => {
+                            mostrarMapaDeCalor(atencionesData);
+                        });
+                    });
+                    
+                    
+                    atencionesData = atenciones;
+                    mostrarMapaDeCalor(atenciones);
+
+                    // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
+                    const semanasSet = new Set();
+                    atenciones.features.forEach(f => {
+                    const semana = f.properties?.SEMANAEPIDEMIOLOGICA;
+                    if (semana) semanasSet.add(semana);
+                    });
+                    const filtroSemana = document.getElementById("filtro-semana");
+                    [...semanasSet].sort((a, b) => a - b).forEach(sem => {
+                    const opt = document.createElement("option");
+                    opt.value = sem;
+                    opt.textContent = `Semana ${sem}`;
+                    filtroSemana.appendChild(opt);
+                    });
+
+                    // LLENAR FILTRO DE DIAGNÓSTICO
+                    const diagnosticosSet = new Set();
+                    atenciones.features.forEach(f => {
+                    const diag = f.properties?.Diagnostico; // Asegurate que sea DIAGNOSTICO
+                    if (diag) diagnosticosSet.add(diag);
+                    });
+                    const filtroDiagnostico = document.getElementById("filtro-diagnostico");
+                    [...diagnosticosSet].sort().forEach(diag => {
+                    const option = document.createElement("option");
+                    option.value = diag;
+                    option.textContent = diag;
+                    filtroDiagnostico.appendChild(option);
+                    });
+
+
+                    if (!efectores || !efectores.features) {
+                        throw new Error("efectores.json no tiene la estructura esperada.");
+                    }
+                    if (!zonasGeo || !zonasGeo.features) {
+                        throw new Error("zonas.geojson no tiene la estructura esperada.");
+                    }
+                    if (!Array.isArray(zonasValores)) {
+                        throw new Error("zonas_valores.json no es un array.");
+                    }
+
+                    efectoresData = efectores.features;
+                    allZonasFeatures = zonasGeo.features;
+                    datosZonasPoblacion = zonasValores;
+                    allZonasDataLoaded = true;
+
+                    console.log("✅ efectores cargados:", efectoresData.length);
+                    poblarSelectorZonas(allZonasFeatures);
+                    mostrarTodosEfectores();
+                    selZONA.value = "";
+                    zonaInfoPanel.style.display = 'none';
+                    allZonesSummaryPanel.style.display = 'none';
+                    returnButton.style.display = 'none';
                 
                      // 👇 PEGÁ ESTO ADENTRO DEL THEN
                     document.getElementById('search-efector').addEventListener('input', (e) => {
@@ -766,67 +831,6 @@
                 'ENTEMETROPOLITANO'
             ];
             const urlBase ="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/";
-
-            const fetchAtenciones = Promise.all([
-                "2024_01_part1", "2024_01_part2",
-                "2024_02",
-                "2024_03_part1", "2024_03_part2", "2024_03_part3",
-                "2024_04_part1", "2024_04_part2", "2024_04_part3",
-                "2024_05_part1", "2024_05_part2", "2024_05_part3",
-                "2024_06_part1", "2024_06_part2",
-                "2024_07_part1", "2024_07_part2",
-                "2024_08_part1", "2024_08_part2", "2024_08_part3",
-                "2024_09_part1", "2024_09_part2", "2024_09_part3",
-                "2024_10_part1", "2024_10_part2", "2024_10_part3",
-                "2024_11_part1", "2024_11_part2",
-                "2024_12_part1", "2024_12_part2",
-                "2025_01_part1", "2025_01_part2",
-                "2025_02_part1", "2025_02_part2",
-                "2025_03_part1", "2025_03_part2",
-                "2025_04_part1", "2025_04_part2",
-                "2025_05_part1", "2025_05_part2",
-                "2025_06_part1", "2025_06_part2"
-                ].map(n => fetch(`${urlBase}atenciones_${n}.geojson`).then(r => r.json())))
-                .then(partes => {
-                    const todasFeatures = partes
-                        .filter(p => p && Array.isArray(p.features))   // ✅ FILTRA archivos sin `.features`
-                        .flatMap(p => p.features);
-                    const datosUnificados = { type: "FeatureCollection", features: todasFeatures };
-                    window.atencionesOriginal = datosUnificados;  // 👈 guardamos el dataset completo
-                    atencionesData = datosUnificados;
-                    mostrarMapaDeCalor(atencionesData);
-
-
-                    console.log("✅ atencionesData features:", atencionesData.features?.length);
-
-                    const semanasSet = new Set();
-                    const diagnosticosSet = new Set();
-                    atencionesData.features.forEach(f => {
-                    const props = f.properties;
-                    if (props?.SEMANAEPIDEMIOLOGICA) semanasSet.add(props.SEMANAEPIDEMIOLOGICA);
-                    if (props?.Diagnostico) diagnosticosSet.add(props.Diagnostico);
-                    });
-
-                    const filtroSemana = document.getElementById("filtro-semana");
-                    [...semanasSet].sort((a, b) => a - b).forEach(sem => {
-                    const opt = document.createElement("option");
-                    opt.value = sem;
-                    opt.textContent = `Semana ${sem}`;
-                    filtroSemana.appendChild(opt);
-                    });
-
-                    const filtroDiagnostico = document.getElementById("filtro-diagnostico");
-                    [...diagnosticosSet].sort().forEach(diag => {
-                    const opt = document.createElement("option");
-                    opt.value = diag;
-                    opt.textContent = diag;
-                    filtroDiagnostico.appendChild(opt);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error al cargar atenciones divididas:", error);
-                    alert("No se pudieron cargar los archivos de atenciones.");
-                });
 
             archivosCapas.forEach((nombre) => {
                 fetch(`${urlBase}${nombre}.json`)
@@ -1266,11 +1270,7 @@
                         if (anio && props?.AÑO != anio) return;
                         if (mes && props?.MES != mes) return;
                         if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
-                        if (diagnostico) {
-                            const diagDato = normalizarTexto(props?.Diagnostico);
-                            const diagFiltro = normalizarTexto(diagnostico);
-                            if (!diagDato.includes(diagFiltro)) return;
-                        }
+                        if (diagnostico && props?.Diagnostico !== diagnostico) return;
 
                         pacientesUnicos.set(doc, f);
                     });
@@ -1285,35 +1285,15 @@
                         blur: 20,
                         maxZoom: 17,
                         gradient: {
-                            0.1: "#004055",  // Azul fuerte
-                            0.3: "#007FAA",  // Azul celeste
-                            0.5: "#FFFF00",  // Amarillo
-                            0.7: "#FFA500",  // Naranja
-                            0.9: "#FF4500",  // Rojo anaranjado
-                            1.0: "#FF5252"   // Fucsia fuerte
+                            0.2: "#13ff00",
+                            0.4: "#2ce21d",
+                            0.6: "#fbd605",
+                            0.8: "#ff8903",
+                            1.0: "#f35938"
                         }
                     }).addTo(map);
-                    const diagnosticoResumenDiv = document.getElementById('diagnostico-resumen');
-                    const tablaDiagnosticoBody = document.getElementById('tabla-diagnostico-body');
-
-                    if (diagnostico && puntosCalor.length > 0) {
-                        diagnosticoResumenDiv.style.display = 'block';
-                        tablaDiagnosticoBody.innerHTML = `
-                            <tr>
-                                <td style="padding: 4px;">${diagnostico}</td>
-                                <td style="text-align: right; padding: 4px;">${puntosCalor.length.toLocaleString('es-AR')}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 4px; font-weight: bold;">Total</td>
-                                <td style="text-align: right; font-weight: bold; padding: 4px;">${puntosCalor.length.toLocaleString('es-AR')}</td>
-                            </tr>
-                        `;
-                    } else {
-                        diagnosticoResumenDiv.style.display = 'none';
-                        tablaDiagnosticoBody.innerHTML = '';
-                    }
-
             }
+
             function crearPopupCentroSalud(datos) {
                 const tipo = (datos.tipo || '').toLowerCase();
                 const nombre = (datos.nombre || '').toLowerCase();
@@ -1396,6 +1376,8 @@
                 }
             }
 
+
+
             function porcentaje(parte, total) {
                 if (isNaN(parte) || isNaN(total) || total === 0 || parte === null || total === null) return '0';
                 return ((parte / total) * 100).toFixed(2);
@@ -1439,7 +1421,15 @@
     
         });
     </script>
-
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script>
+        new Choices("#filtro-diagnostico", {
+            searchEnabled: true,
+            itemSelectText: '',
+            shouldSort: false,
+            placeholder: true,
+            placeholderValue: "Buscar diagnóstico...",
+        });
+        </script>
 </body>
 </html>
-
