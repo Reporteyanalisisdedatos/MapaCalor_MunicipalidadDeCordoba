@@ -596,6 +596,9 @@
                     if (!res.ok) throw new Error(`Error al cargar zonas_valores.json: ${res.status}`);
                     return res.json();
                 });
+
+            const urlBase ="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/";
+            
             // Archivos GeoJSON divididos por mes y parte
             const archivosAtenciones = [
                 // 2024
@@ -816,7 +819,7 @@
                 'LOCALIDADES',
                 'ENTEMETROPOLITANO'
             ];
-            const urlBase ="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/";
+            
 
             archivosCapas.forEach((nombre) => {
                 fetch(`${urlBase}${nombre}.json`)
