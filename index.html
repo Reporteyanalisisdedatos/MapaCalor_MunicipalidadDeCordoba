@@ -469,6 +469,7 @@
         const capasLabels = {}; // Objeto para almacenar las capas de etiquetas (los nombres)
         let allZonasFeatures = []; // Para guardar todas las features de zonas
         let allZonasDataLoaded = false; // Flag para saber si los datos de zonas están cargados
+        let capaHeatmap = null;
 
         // Referencias a los elementos del DOM
         const selZONA = document.getElementById('selZONA');
@@ -598,7 +599,7 @@
                 });
 
             const urlBase ="https://reporteyanalisisdedatos.github.io/MapaCalor_MunicipalidadDeCordoba/";
-            
+
             // Archivos GeoJSON divididos por mes y parte
             const archivosAtenciones = [
                 // 2024
@@ -1227,60 +1228,47 @@
             let capaCalor = null;
 
             function mostrarMapaDeCalor(geojson) {
-                    if (capaCalor) map.removeLayer(capaCalor);
+                // Limpiar heatmap anterior si existe
+                if (capaHeatmap) {
+                    map.removeLayer(capaHeatmap);
+                }
 
-                    const anio = document.getElementById('filtro-anio').value;
-                    const mes = document.getElementById('filtro-mes').value;
-                    const semana = document.getElementById('filtro-semana').value;
-                    const diagnostico = document.getElementById('filtro-diagnostico').value;
+                // Filtros aplicados
+                const anio = document.getElementById('filtro-anio').value;
+                const mes = document.getElementById('filtro-mes').value;
+                const semana = document.getElementById('filtro-semana').value;
+                const diagnostico = document.getElementById('filtro-diagnostico').value;
 
-                    const pacientesUnicos = new Map(); // clave: Documento, valor: feature
-
-                    function normalizarTexto(texto) {
-                        return (texto || '')
-                            .toLowerCase()
-                            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita tildes
-                            .replace(/[^a-z0-9\s]/g, '') // elimina símbolos como [ ] etc
-                            .replace(/\s+/g, ' ') // elimina espacios dobles
-                            .trim();
-                    }
-
-                    geojson.features.forEach(f => {
-                        const props = f.properties;
-                        const geom = f.geometry;
-                        const doc = props?.Documento;
-
-                        if (!doc || pacientesUnicos.has(doc)) return;
-                        if (!geom || geom.type !== "Point" || !Array.isArray(geom.coordinates)) return;
-
-                        const [lng, lat] = geom.coordinates;
-                        if (!lat || !lng || isNaN(lat) || isNaN(lng)) return;
-
-                        if (anio && props?.AÑO != anio) return;
-                        if (mes && props?.MES != mes) return;
-                        if (semana && props?.SEMANAEPIDEMIOLOGICA != semana) return;
-                        if (diagnostico && props?.Diagnostico !== diagnostico) return;
-
-                        pacientesUnicos.set(doc, f);
-                    });
-
-                    const puntosCalor = [...pacientesUnicos.values()].map(f => {
+                // Convertir a puntos de calor con filtros
+                const heatmapPoints = geojson.features
+                    .filter(f => f.geometry && f.geometry.coordinates)
+                    .filter(f => {
+                        const p = f.properties || {};
+                        return (!anio || p.Año == anio)
+                            && (!mes || p.Mes == mes)
+                            && (!semana || p.SEMANAEPIDEMIOLOGICA == semana)
+                            && (!diagnostico || p.Diagnostico == diagnostico);
+                    })
+                    .map(f => {
                         const [lng, lat] = f.geometry.coordinates;
-                        return [lat, lng, 1];
+                        return [lat, lng, 0.5]; // intensidad fija o variable
                     });
 
-                    capaCalor = L.heatLayer(puntosCalor, {
-                        radius: 25,
-                        blur: 20,
-                        maxZoom: 17,
-                        gradient: {
-                            0.2: "#13ff00",
-                            0.4: "#2ce21d",
-                            0.6: "#fbd605",
-                            0.8: "#ff8903",
-                            1.0: "#f35938"
-                        }
-                    }).addTo(map);
+                // Crear capa heatmap y agregar al mapa
+                capaHeatmap = L.heatLayer(heatmapPoints, {
+                    radius: 25,
+                    blur: 15,
+                    maxZoom: 17,
+                    gradient: {
+                        0.2: 'blue',
+                        0.4: 'lime',
+                        0.6: 'yellow',
+                        0.8: 'orange',
+                        1.0: 'red'
+                    }
+                });
+
+                capaHeatmap.addTo(map);
             }
 
             function crearPopupCentroSalud(datos) {
