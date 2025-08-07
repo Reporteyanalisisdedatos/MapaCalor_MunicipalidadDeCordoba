@@ -603,11 +603,11 @@
             // Archivos GeoJSON divididos por mes y parte
             const archivosAtenciones = [
                 // 2024
-                "atenciones_2024_01_part1.geojson", "atenciones_2024_01_part2.geojson",
+                "atenciones_2024_01.geojson",
                 "atenciones_2024_02.geojson",
-                "atenciones_2024_03_part1.geojson", "atenciones_2024_03_part2.geojson", "atenciones_2024_03_part3.geojson",
-                "atenciones_2024_04_part1.geojson", "atenciones_2024_04_part2.geojson", "atenciones_2024_04_part3.geojson",
-                "atenciones_2024_05_part1.geojson", "atenciones_2024_05_part2.geojson", "atenciones_2024_05_part3.geojson",
+                "atenciones_2024_03_part1.geojson", "atenciones_2024_03_part2.geojson",
+                "atenciones_2024_04_part1.geojson", "atenciones_2024_04_part2.geojson",
+                "atenciones_2024_05_part1.geojson", "atenciones_2024_05_part2.geojson",
                 "atenciones_2024_06_part1.geojson", "atenciones_2024_06_part2.geojson",
                 "atenciones_2024_07_part1.geojson", "atenciones_2024_07_part2.geojson",
                 "atenciones_2024_08_part1.geojson", "atenciones_2024_08_part2.geojson", "atenciones_2024_08_part3.geojson",
@@ -1259,12 +1259,12 @@
                     radius: 25,
                     blur: 15,
                     maxZoom: 17,
-                    gradient: {
-                        0.2: 'blue',
-                        0.4: 'lime',
-                        0.6: 'yellow',
-                        0.8: 'orange',
-                        1.0: 'red'
+                    ggradient: {
+                        0.1: '#cce5ff', // azul claro
+                        0.3: '#99ccff', // celeste más fuerte
+                        0.5: '#ffff99', // amarillo claro
+                        0.7: '#ffcc66', // naranja claro
+                        1.0: '#ff6666'  // rojo suave
                     }
                 });
 
