@@ -1247,7 +1247,7 @@
                 // Filtros aplicados
                 const anio = document.getElementById('filtro-anio').value;
                 const mes = document.getElementById('filtro-mes').value;
-                const semana = document.getElementById('filtro-semana').value;
+                const condSemana = (!semana || String(w) == String(semana));
                 const diagnostico = document.getElementById('filtro-diagnostico').value;
 
                 // Convertir a puntos de calor con filtros
