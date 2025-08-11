@@ -435,7 +435,7 @@
 <label>
 <select id="filtro-semana">
 <option value="">-- Semana Epidemiológica --</option>
-                ${Array.from({ length: 52 }, (_, i) =&gt; `<option value="${i+1}">${i+1}</option>`).join('')}
+                
             </select>
 </label>
 <label>
@@ -470,6 +470,13 @@
         let allZonasFeatures = []; // Para guardar todas las features de zonas
         let allZonasDataLoaded = false; // Flag para saber si los datos de zonas están cargados
         let capaHeatmap = null;
+
+        const P = {
+            year:  p => p.Año ?? p.ANIO ?? p.Anio ?? p.anio ?? p.AÑO,
+            month: p => p.Mes ?? p.MES ?? p.mes,
+            week:  p => p.SEMANAEPIDEMIOLOGICA ?? p.SemanaEpidemiologica ?? p.semanaEpidemiologica ?? p.semana ?? p.SEMANA,
+            diag:  p => p.Diagnostico ?? p.DIAGNOSTICO ?? p.diagnostico
+            };
 
         // Referencias a los elementos del DOM
         const selZONA = document.getElementById('selZONA');
@@ -662,17 +669,21 @@
                     mostrarMapaDeCalor(atenciones);
 
                     // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
+                    const filtroSemana = document.getElementById("filtro-semana");
+                    filtroSemana.innerHTML = `<option value="">-- Semana Epidemiológica --</option>`; // limpiar
+
                     const semanasSet = new Set();
                     atenciones.features.forEach(f => {
-                    const semana = f.properties?.SEMANAEPIDEMIOLOGICA;
-                    if (semana) semanasSet.add(semana);
+                        const p = f.properties || {};
+                        const semana = P.week(p); // usamos el helper para normalizar el nombre
+                        if (semana != null && semana !== '') semanasSet.add(Number(semana));
                     });
-                    const filtroSemana = document.getElementById("filtro-semana");
+
                     [...semanasSet].sort((a, b) => a - b).forEach(sem => {
-                    const opt = document.createElement("option");
-                    opt.value = sem;
-                    opt.textContent = `Semana ${sem}`;
-                    filtroSemana.appendChild(opt);
+                        const opt = document.createElement("option");
+                        opt.value = String(sem);
+                        opt.textContent = `Semana ${sem}`;
+                        filtroSemana.appendChild(opt);
                     });
 
                     // LLENAR FILTRO DE DIAGNÓSTICO
@@ -1243,11 +1254,18 @@
                 const heatmapPoints = geojson.features
                     .filter(f => f.geometry && f.geometry.coordinates)
                     .filter(f => {
-                        const p = f.properties || {};
-                        return (!anio || p.Año == anio)
-                            && (!mes || p.Mes == mes)
-                            && (!semana || p.SEMANAEPIDEMIOLOGICA == semana)
-                            && (!diagnostico || p.Diagnostico == diagnostico);
+                    const p = f.properties || {};
+                    const y = P.year(p);
+                    const m = P.month(p);
+                    const w = P.week(p);
+                    const d = P.diag(p);
+
+                    const condAnio   = (!anio   || String(y) == String(anio));
+                    const condMes    = (!mes    || String(m) == String(mes));
+                    const condSemana = (!semanaSel || String(w) == String(semanaSel));
+                    const condDiag   = (!diagnostico || String(d) === String(diagnostico));
+
+                    return condAnio && condMes && condSemana && condDiag;
                     })
                     .map(f => {
                         const [lng, lat] = f.geometry.coordinates;
