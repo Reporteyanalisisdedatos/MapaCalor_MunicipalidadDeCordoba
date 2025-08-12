@@ -1337,6 +1337,48 @@
                 capaHeatmap.addTo(map);
             }
 
+            function actualizarDiagnosticos() {
+                const anio    = document.getElementById('filtro-anio').value;
+                const mes     = document.getElementById('filtro-mes').value;
+                const semana  = document.getElementById('filtro-semana').value;
+
+                const set = new Set();
+
+                (atencionesData?.features || []).forEach(f => {
+                    const p = f.properties || {};
+                    const y = P.year(p);
+                    const m = P.month(p);
+                    const w = P.week(p);
+                    const d = P.diag(p);
+
+                    const okAnio   = (!anio   || String(y) == String(anio));
+                    const okMes    = (!mes    || String(m) == String(mes));
+                    const okSemana = (!semana || String(w) == String(semana));
+
+                    if (okAnio && okMes && okSemana && d) {
+                        set.add(String(d).trim());
+                    }
+                });
+
+                const sel = document.getElementById('filtro-diagnostico');
+                sel.innerHTML = '<option value="">-- Diagnóstico --</option>';
+                if (diagChoices) {
+                    diagChoices.clearStore();
+                }
+
+                const opciones = [...set].sort().map(v => ({ value: v, label: v }));
+                if (diagChoices) {
+                    diagChoices.setChoices(opciones, 'value', 'label', true);
+                } else {
+                    opciones.forEach(o => {
+                        const opt = document.createElement('option');
+                        opt.value = o.value; 
+                        opt.textContent = o.label;
+                        sel.appendChild(opt);
+                    });
+                }
+}
+
             function crearPopupCentroSalud(datos) {
                 const tipo = (datos.tipo || '').toLowerCase();
                 const nombre = (datos.nombre || '').toLowerCase();
