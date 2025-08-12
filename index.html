@@ -470,6 +470,7 @@
         let allZonasFeatures = []; // Para guardar todas las features de zonas
         let allZonasDataLoaded = false; // Flag para saber si los datos de zonas están cargados
         let capaHeatmap = null;
+        let diagChoices = null;
 
         const P = {
             year:  p => p.Año ?? p.ANIO ?? p.Anio ?? p.anio ?? p.AÑO,
@@ -498,8 +499,14 @@
                 iconAnchor: [18, 36],
                 popupAnchor: [0, -36],
             });
-
             
+            diagChoices = new Choices("#filtro-diagnostico", {
+                searchEnabled: true,
+                itemSelectText: '',
+                shouldSort: false,
+                placeholder: true,
+                placeholderValue: "Buscar diagnóstico...",
+            });
 
             const iconoHPA = L.icon({
                 iconUrl: 'HOSP-HPA-PLM.png',
@@ -658,14 +665,34 @@
             Promise.all([fetchEfectores, fetchZonasGeo, fetchZonasValores, cargarTodosLosGeojson()])
                 .then(([efectores, zonasGeo, zonasValores, atenciones]) => {
                     
-                    ['filtro-anio', 'filtro-mes', 'filtro-semana', 'filtro-diagnostico'].forEach(id => {
-                        document.getElementById(id).addEventListener('change', () => {
-                            mostrarMapaDeCalor(atencionesData);
-                        });
+                    document.getElementById('filtro-anio').addEventListener('change', () => {
+                        actualizarDiagnosticos();
+                        // al cambiar el contexto, reseteo diagnóstico seleccionado
+                        diagChoices.removeActiveItems();
+                        mostrarMapaDeCalor(atencionesData);
                     });
+
+                    document.getElementById('filtro-mes').addEventListener('change', () => {
+                        actualizarDiagnosticos();
+                        diagChoices.removeActiveItems();
+                        mostrarMapaDeCalor(atencionesData);
+                    });
+
+                    document.getElementById('filtro-semana').addEventListener('change', () => {
+                        actualizarDiagnosticos();
+                        diagChoices.removeActiveItems();
+                        mostrarMapaDeCalor(atencionesData);
+                    });
+
+                        // si cambia el diagnóstico, sólo actualizo el mapa
+                    document.getElementById('filtro-diagnostico').addEventListener('change', () => {
+                        mostrarMapaDeCalor(atencionesData);
+                    });
+
                     
                     
                     atencionesData = atenciones;
+                    actualizarDiagnosticos()
                     mostrarMapaDeCalor(atenciones);
 
                     // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
@@ -687,19 +714,40 @@
                     });
 
                     // LLENAR FILTRO DE DIAGNÓSTICO
-                    const diagnosticosSet = new Set();
-                    atenciones.features.forEach(f => {
-                    const diag = f.properties?.Diagnostico; // Asegurate que sea DIAGNOSTICO
-                    if (diag) diagnosticosSet.add(diag);
-                    });
-                    const filtroDiagnostico = document.getElementById("filtro-diagnostico");
-                    [...diagnosticosSet].sort().forEach(diag => {
-                    const option = document.createElement("option");
-                    option.value = diag;
-                    option.textContent = diag;
-                    filtroDiagnostico.appendChild(option);
-                    });
+                    // --- NUEVO: reconstruye la lista de diagnósticos según los filtros actuales ---
+                    function actualizarDiagnosticos() {
+                        const anioSel   = document.getElementById("filtro-anio").value;
+                        const mesSel    = document.getElementById("filtro-mes").value;
+                        const semanaSel = document.getElementById("filtro-semana").value;
 
+                        // 1) Filtrar atenciones por anio/mes/semana
+                        const setDiag = new Set();
+                        (atencionesData?.features || []).forEach(f => {
+                            const p = f.properties || {};
+                            const y = P.year(p);
+                            const m = P.month(p);
+                            const w = P.week(p);
+                            const d = P.diag(p);
+
+                            const okY = (!anioSel   || String(y) == String(anioSel));
+                            const okM = (!mesSel    || String(m) == String(mesSel));
+                            const okW = (!semanaSel || String(w) == String(semanaSel));
+
+                            if (okY && okM && okW && d) setDiag.add(String(d));
+                        });
+
+                        // 2) Armar opciones para Choices
+                        const opciones = Array.from(setDiag).sort().map(diag => ({
+                            value: diag, label: diag, selected: false, disabled: false
+                        }));
+
+                        // 3) Volcar en Choices (limpia y carga de nuevo)
+                        diagChoices.clearStore();          // limpia todo (items + choices)
+                        diagChoices.setChoices(
+                            [{value: "", label: "-- Diagnóstico --", selected: true, disabled: false}, ...opciones],
+                            'value', 'label', true
+                        );
+                    }
 
                     if (!efectores || !efectores.features) {
                         throw new Error("efectores.json no tiene la estructura esperada.");
@@ -1417,14 +1465,5 @@
         });
     </script>
 <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-<script>
-        new Choices("#filtro-diagnostico", {
-            searchEnabled: true,
-            itemSelectText: '',
-            shouldSort: false,
-            placeholder: true,
-            placeholderValue: "Buscar diagnóstico...",
-        });
-        </script>
 </body>
 </html>
