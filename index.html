@@ -1247,11 +1247,11 @@
                 // Filtros aplicados
                 const anio = document.getElementById('filtro-anio').value;
                 const mes = document.getElementById('filtro-mes').value;
-                const condSemana = (!semana || String(w) == String(semana));
+                const semana = document.getElementById('filtro-semana').value;   // ✅ leer semana acá
                 const diagnostico = document.getElementById('filtro-diagnostico').value;
 
                 // Convertir a puntos de calor con filtros
-                const heatmapPoints = geojson.features
+                const heatmapPoints = (geojson.features || [])
                     .filter(f => f.geometry && f.geometry.coordinates)
                     .filter(f => {
                     const p = f.properties || {};
@@ -1262,14 +1262,14 @@
 
                     const condAnio   = (!anio   || String(y) == String(anio));
                     const condMes    = (!mes    || String(m) == String(mes));
-                    const condSemana = (!semanaSel || String(w) == String(semanaSel));
+                    const condSemana = (!semana || String(w) == String(semana));  // ✅ usar "semana" (no "semanaSel")
                     const condDiag   = (!diagnostico || String(d) === String(diagnostico));
 
                     return condAnio && condMes && condSemana && condDiag;
                     })
                     .map(f => {
-                        const [lng, lat] = f.geometry.coordinates;
-                        return [lat, lng, 0.5]; // intensidad fija o variable
+                    const [lng, lat] = f.geometry.coordinates;
+                    return [lat, lng, 0.5]; // intensidad fija o variable
                     });
 
                 // Crear capa heatmap y agregar al mapa
