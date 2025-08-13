@@ -350,7 +350,7 @@
                         mostrarMapaDeCalor(atencionesData);
                     });
 
-                    diagChoices.setChoices([...setDiag].map(d => ({ value: d, label: d })));
+                    diagChoices.setChoices([...set].map(d => ({ value: d, label: d })));
 
                     atencionesData = atenciones;
                     actualizarDiagnosticos()
@@ -382,7 +382,7 @@
                         const semanaSel = document.getElementById("filtro-semana").value;
 
                         // 1) Filtrar atenciones por anio/mes/semana
-                        const setDiag = new Set();
+                        const set = new Set();
                         (atencionesData?.features || []).forEach(f => {
                             const p = f.properties || {};
                             const y = P.year(p);
@@ -394,11 +394,11 @@
                             const okM = (!mesSel    || String(m) == String(mesSel));
                             const okW = (!semanaSel || String(w) == String(semanaSel));
 
-                            if (okY && okM && okW && d) setDiag.add(String(d));
+                            if (okY && okM && okW && d) set.add(String(d));
                         });
 
                         // 2) Armar opciones para Choices
-                        const opciones = Array.from(setDiag).sort().map(diag => ({
+                        const opciones = Array.from(set).sort().map(diag => ({
                             value: diag, label: diag, selected: false, disabled: false
                         }));
 
