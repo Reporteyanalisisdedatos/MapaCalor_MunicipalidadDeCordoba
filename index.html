@@ -122,6 +122,7 @@
 </div>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 <script>
         let atencionesData = null;
         let efectoresData = null;
@@ -350,13 +351,6 @@
                         mostrarMapaDeCalor(atencionesData);
                     });
 
-                    diagChoices.setChoices(
-                        [...set].map(d => ({ value: d, label: d })),
-                        'value',
-                        'label',
-                        true
-                        );
-
                     atencionesData = atenciones;
                     actualizarDiagnosticos()
                     mostrarMapaDeCalor(atenciones);
@@ -379,41 +373,7 @@
                         filtroSemana.appendChild(opt);
                     });
 
-                    // LLENAR FILTRO DE DIAGNÓSTICO
-                    // --- NUEVO: reconstruye la lista de diagnósticos según los filtros actuales ---
-                    function actualizarDiagnosticos() {
-                        const anioSel   = document.getElementById("filtro-anio").value;
-                        const mesSel    = document.getElementById("filtro-mes").value;
-                        const semanaSel = document.getElementById("filtro-semana").value;
-
-                        // 1) Filtrar atenciones por anio/mes/semana
-                        const set = new Set();
-                        (atencionesData?.features || []).forEach(f => {
-                            const p = f.properties || {};
-                            const y = P.year(p);
-                            const m = P.month(p);
-                            const w = P.week(p);
-                            const d = P.diag(p);
-
-                            const okY = (!anioSel   || String(y) == String(anioSel));
-                            const okM = (!mesSel    || String(m) == String(mesSel));
-                            const okW = (!semanaSel || String(w) == String(semanaSel));
-
-                            if (okY && okM && okW && d) set.add(String(d));
-                        });
-
-                        // 2) Armar opciones para Choices
-                        const opciones = Array.from(set).sort().map(diag => ({
-                            value: diag, label: diag, selected: false, disabled: false
-                        }));
-
-                        // 3) Volcar en Choices (limpia y carga de nuevo)
-                        diagChoices.clearStore();          // limpia todo (items + choices)
-                        diagChoices.setChoices(
-                            [{value: "", label: "-- Diagnóstico --", selected: true, disabled: false}, ...opciones],
-                            'value', 'label', true
-                        );
-                    }
+                    
 
                     if (!efectores || !efectores.features) {
                         throw new Error("efectores.json no tiene la estructura esperada.");
@@ -953,9 +913,7 @@
             let capaCalor = null;
 
             function mostrarMapaDeCalor(geojson) {
-                if (capaHeatmap) {
-                map.removeLayer(capaHeatmap);
-                }
+                if (capaHeatmap) map.removeLayer(capaHeatmap);
 
                 const anio   = document.getElementById('filtro-anio').value;
                 const mes    = document.getElementById('filtro-mes').value;
@@ -1168,6 +1126,5 @@
     
         });
     </script>
-<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 </body>
 </html>
