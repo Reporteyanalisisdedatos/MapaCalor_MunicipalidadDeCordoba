@@ -350,7 +350,12 @@
                         mostrarMapaDeCalor(atencionesData);
                     });
 
-                    diagChoices.setChoices([...set].map(d => ({ value: d, label: d })));
+                    diagChoices.setChoices(
+                        [...set].map(d => ({ value: d, label: d })),
+                        'value',
+                        'label',
+                        true
+                        );
 
                     atencionesData = atenciones;
                     actualizarDiagnosticos()
