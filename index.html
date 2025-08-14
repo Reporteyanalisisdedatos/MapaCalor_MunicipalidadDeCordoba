@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 <meta charset="utf-8"/>
 <title>Mapa Sanitario - Provincia de Córdoba</title>
@@ -97,7 +98,13 @@
 <select id="filtro-semana">
 <option value="">-- Semana Epidemiológica --</option>
                 
-            </select>
+</select>
+<div class="filter-group" id="diag-summary-group">
+    <div class="filter-group-title">Diagnósticos (conteo)</div>
+    <div id="diag-summary" style="max-height: 240px; overflow-y: auto; font-family: sans-serif;">
+    <div style="font-size:13px; color:#666;">Selección de filtros vacía.</div>
+</div>
+</div>
 </label>
 <label>
 <select id="filtro-diagnostico">
@@ -162,7 +169,7 @@
                 popupAnchor: [0, -36],
             });
             
-            diagChoices = new Choices("#filtro-diagnostico", {
+            diagChoices = new Choices(document.getElementById('filtro-diagnostico'), {
                 searchEnabled: true,
                 itemSelectText: '',
                 shouldSort: false,
@@ -329,31 +336,33 @@
                     
                     document.getElementById('filtro-anio').addEventListener('change', () => {
                         actualizarDiagnosticos();
-                        // al cambiar el contexto, reseteo diagnóstico seleccionado
-                        
                         mostrarMapaDeCalor(atencionesData);
+                        renderDiagnosticosConteo();       // ← nuevo
                     });
 
                     document.getElementById('filtro-mes').addEventListener('change', () => {
                         actualizarDiagnosticos();
-                        
                         mostrarMapaDeCalor(atencionesData);
+                        renderDiagnosticosConteo();       // ← nuevo
                     });
 
                     document.getElementById('filtro-semana').addEventListener('change', () => {
                         actualizarDiagnosticos();
-                        
                         mostrarMapaDeCalor(atencionesData);
+                        renderDiagnosticosConteo();       // ← nuevo
                     });
 
-                        // si cambia el diagnóstico, sólo actualizo el mapa
+                    // si cambia el diagnóstico, solo actualizo el mapa y re-pinto la lista (para resaltar selección)
                     document.getElementById('filtro-diagnostico').addEventListener('change', () => {
                         mostrarMapaDeCalor(atencionesData);
+                        renderDiagnosticosConteo();       // ← nuevo (highlight)
                     });
+
 
                     atencionesData = atenciones;
                     actualizarDiagnosticos()
                     mostrarMapaDeCalor(atenciones);
+                    renderDiagnosticosConteo();
 
                     // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
                     const filtroSemana = document.getElementById("filtro-semana");
@@ -918,7 +927,11 @@
                 const anio   = document.getElementById('filtro-anio').value;
                 const mes    = document.getElementById('filtro-mes').value;
                 const semana = document.getElementById('filtro-semana').value;
-                const diagnosticoSel = (document.getElementById('filtro-diagnostico').value || '').trim();
+                const diagnosticoSel = (
+                    (diagChoices && diagChoices.getValue(true)) ||
+                    document.getElementById('filtro-diagnostico').value ||
+                    ''
+                ).toString().trim();
 
                 const heatmapPoints = (geojson.features || [])
                     .filter(f => f.geometry && f.geometry.coordinates)
@@ -997,6 +1010,92 @@
                     });
                 }
                 }
+            function getFiltrosActuales() {
+                return {
+                    anio:   document.getElementById('filtro-anio').value,
+                    mes:    document.getElementById('filtro-mes').value,
+                    semana: document.getElementById('filtro-semana').value
+                };
+                }
+
+                function calcularConteoDiagnosticos() {
+                const { anio, mes, semana } = getFiltrosActuales();
+                const conteo = new Map();
+
+                (atencionesData?.features || []).forEach(f => {
+                    const p = f.properties || {};
+                    const y = P.year(p);
+                    const m = P.month(p);
+                    const w = P.week(p);
+                    const d = (P.diag(p) ?? '').toString().trim();
+
+                    const okAnio   = (!anio   || String(y) == String(anio));
+                    const okMes    = (!mes    || String(m) == String(mes));
+                    const okSemana = (!semana || String(w) == String(semana));
+
+                    if (okAnio && okMes && okSemana && d) {
+                    conteo.set(d, (conteo.get(d) || 0) + 1);
+                    }
+                });
+
+                // Array ordenado por cantidad desc, luego alfabético
+                return [...conteo.entries()]
+                    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'es'));
+                }
+
+                function renderDiagnosticosConteo() {
+                const wrap = document.getElementById('diag-summary');
+                if (!wrap) return;
+
+                const items = calcularConteoDiagnosticos();
+
+                if (!items.length) {
+                    wrap.innerHTML = `<div style="font-size:13px; color:#666;">Sin registros para los filtros actuales.</div>`;
+                    return;
+                }
+
+                const seleccionado = (
+                    (diagChoices && diagChoices.getValue(true)) ||
+                    document.getElementById('filtro-diagnostico').value ||
+                    ''
+                ).toString().trim();
+
+                const total = items.reduce((acc, [,n]) => acc + n, 0);
+
+                const html = [
+                    `<div style="font-size:12px;color:#555;margin-bottom:6px;">Total de casos: <b>${total.toLocaleString('es-AR')}</b></div>`,
+                    `<ul style="list-style:none;padding:0;margin:0;">`,
+                    ...items.map(([diag, n]) => {
+                    const isSel = diag === seleccionado;
+                    return `
+                        <li data-diag="${diag.replace(/"/g,'&quot;')}"
+                            style="display:flex;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid #eee;cursor:pointer;${isSel ? 'background:#eef6ff;font-weight:600;' : ''}">
+                        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${diag}</span>
+                        <span>${n.toLocaleString('es-AR')}</span>
+                        </li>`;
+                    }),
+                    `</ul>`
+                ].join('');
+
+                wrap.innerHTML = html;
+
+                // Click: seleccionar en el combo y actualizar el mapa
+                wrap.querySelectorAll('li[data-diag]').forEach(li => {
+                    li.addEventListener('click', () => {
+                    const diag = li.getAttribute('data-diag');
+                    if (diagChoices) {
+                        diagChoices.setChoiceByValue(diag);
+                    } else {
+                        const sel = document.getElementById('filtro-diagnostico');
+                        sel.value = diag;
+                    }
+                    mostrarMapaDeCalor(atencionesData);
+                    renderDiagnosticosConteo();
+                    });
+                });
+                }
+
+            
                 
 
             function crearPopupCentroSalud(datos) {
