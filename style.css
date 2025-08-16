@@ -333,4 +333,45 @@
             margin-right: 8px;
         }
 
+        /* Tarjeta / card del conteo */
+        #diag-summary-group.diag-card{
+          background:#fff;
+          border-radius:10px;
+          border:1px solid #eaeaea;
+          box-shadow:0 2px 6px rgba(0,0,0,.08);
+          margin-top:10px;
+          display:flex;
+          flex-direction:column;
+          overflow:hidden;
+        }
+        .diag-card__title{
+          padding:8px 10px;
+          font-weight:600;
+          color:#005288;
+          border-bottom:1px solid #eef1f5;
+        }
+        .diag-card__body{ max-height:280px; overflow-y:auto; }
+        
+        /* Lista y filas */
+        .diag-list{ list-style:none; margin:0; padding:0; }
+        .diag-item{
+          display:flex; align-items:center; justify-content:space-between;
+          gap:10px; padding:8px 10px; border-bottom:1px solid #f3f4f6;
+          cursor:pointer;
+        }
+        .diag-item:hover{ background:#f8fbff; }
+        .diag-item.is-selected{ background:#eef6ff; font-weight:600; }
+        
+        .diag-name{
+          flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .diag-badge{
+          flex:0 0 auto; font-size:12px; line-height:1;
+          padding:4px 8px; border-radius:999px; background:#005288; color:#fff;
+        }
+        .diag-total{
+          font-size:12px; color:#555; padding:8px 10px;
+          background:#fafbfc; border-bottom:1px solid #eef1f5;
+        }
+
         
