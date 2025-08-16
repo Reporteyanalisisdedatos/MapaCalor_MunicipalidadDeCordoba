@@ -109,7 +109,7 @@
 <label>
 <select id="filtro-diagnostico">
 <option value="">-- Diagnóstico --</option>
-<!-- opciones dinámicas -->
+<option value="Dengue">Dengue</option>
 </select>
 </label>
 </div>
@@ -145,8 +145,24 @@
             year:  p => p.Año ?? p.ANIO ?? p.Anio ?? p.anio ?? p.AÑO,
             month: p => p.Mes ?? p.MES ?? p.mes,
             week:  p => p.SEMANAEPIDEMIOLOGICA ?? p.SemanaEpidemiologica ?? p.semanaEpidemiologica ?? p.semana ?? p.SEMANA,
-            diag:  p => p.Diagnostico ?? p.DIAGNOSTICO ?? p.diagnostico
+            diag:  p =>
+                p.CodigoDiagnostico ??
+                p.CODIGODIAGNOSTICO ??
+                p.codigoDiagnostico ??
+                p.Codigo_Diagnostico ??
+                p.Diagnostico ?? p.DIAGNOSTICO ?? p.diagnostico
             };
+        const norm = s => (s ?? '')
+            .toString()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+            .trim();
+            
+        // Normalizador numérico (para evitar problemas con strings, espacios o valores nulos)
+        function num(val) {
+            if (val == null) return null;
+            const n = parseInt(val, 10);
+            return isNaN(n) ? null : n;
+        }
 
         // Referencias a los elementos del DOM
         const selZONA = document.getElementById('selZONA');
@@ -371,8 +387,8 @@
                     const semanasSet = new Set();
                     atenciones.features.forEach(f => {
                         const p = f.properties || {};
-                        const semana = P.week(p); // usamos el helper para normalizar el nombre
-                        if (semana != null && semana !== '') semanasSet.add(Number(semana));
+                        const semana = num(P.week(p)); // usar normalizador numérico
+                        if (semana != null && !Number.isNaN(semana)) semanasSet.add(semana);
                     });
 
                     [...semanasSet].sort((a, b) => a - b).forEach(sem => {
@@ -928,31 +944,30 @@
                 const mes    = document.getElementById('filtro-mes').value;
                 const semana = document.getElementById('filtro-semana').value;
                 const diagnosticoSel = (
-                    (diagChoices && diagChoices.getValue(true)) ||
-                    document.getElementById('filtro-diagnostico').value ||
-                    ''
+                (diagChoices && diagChoices.getValue(true)) ||
+                document.getElementById('filtro-diagnostico').value || ''
                 ).toString().trim();
 
                 const heatmapPoints = (geojson.features || [])
-                    .filter(f => f.geometry && f.geometry.coordinates)
-                    .filter(f => {
+                .filter(f => f.geometry && f.geometry.coordinates)
+                .filter(f => {
                     const p = f.properties || {};
-                    const y = P.year(p);
-                    const m = P.month(p);
-                    const w = P.week(p);
+                    const y = num(P.year(p));
+                    const m = num(P.month(p));
+                    const w = num(P.week(p));
                     const d = (P.diag(p) ?? '').toString().trim();
 
-                    const condAnio   = (!anio   || String(y) == String(anio));
-                    const condMes    = (!mes    || String(m) == String(mes));
-                    const condSemana = (!semana || String(w) == String(semana));
-                    const condDiag   = (!diagnosticoSel || d === diagnosticoSel);
+                    const condAnio   = (!anio   || y === num(anio));
+                    const condMes    = (!mes    || m === num(mes));
+                    const condSemana = (!semana || w === num(semana));
+                    const condDiag = (!diagnosticoSel || norm(d) === norm(diagnosticoSel));
 
                     return condAnio && condMes && condSemana && condDiag;
-                    })
-                    .map(f => {
+                })
+                .map(f => {
                     const [lng, lat] = f.geometry.coordinates;
                     return [lat, lng, 0.5];
-                    });
+                });
 
                 // Crear capa heatmap y agregar al mapa
                 capaHeatmap = L.heatLayer(heatmapPoints, {
@@ -976,25 +991,29 @@
                 const mes    = document.getElementById('filtro-mes').value;
                 const semana = document.getElementById('filtro-semana').value;
 
-                const set = new Set();
+                const seen = new Map(); // norm -> original
 
                 (atencionesData?.features || []).forEach(f => {
                     const p = f.properties || {};
-                    const okAnio   = (!anio   || String(P.year(p))  == String(anio));
-                    const okMes    = (!mes    || String(P.month(p)) == String(mes));
-                    const okSemana = (!semana || String(P.week(p))  == String(semana));
+                    const y = num(P.year(p));
+                    const m = num(P.month(p));
+                    const w = num(P.week(p));
                     const d = (P.diag(p) ?? '').toString().trim();
 
+                    const okAnio   = (!anio   || y === num(anio));
+                    const okMes    = (!mes    || m === num(mes));
+                    const okSemana = (!semana || w === num(semana));
+
                     if (okAnio && okMes && okSemana && d) {
-                    set.add(d);
+                    const k = norm(d);
+                    if (!seen.has(k)) seen.set(k, d); // guardo el original una sola vez
                     }
                 });
 
-                const opciones = [...set].sort().map(v => ({ value: v, label: v }));
+                const opciones = [...seen.values()].sort().map(v => ({ value: v, label: v }));
 
-                // Reinicio el combo de Choices con placeholder + opciones
                 if (diagChoices) {
-                    diagChoices.clearStore(); // limpia items y choices
+                    diagChoices.clearStore();
                     diagChoices.setChoices(
                     [{ value: "", label: "-- Diagnóstico --", selected: true }, ...opciones],
                     'value', 'label', true
@@ -1010,6 +1029,7 @@
                     });
                 }
                 }
+
             function getFiltrosActuales() {
                 return {
                     anio:   document.getElementById('filtro-anio').value,
@@ -1019,24 +1039,24 @@
                 }
 
                 function calcularConteoDiagnosticos() {
-                const { anio, mes, semana } = getFiltrosActuales();
-                const conteo = new Map();
+                    const { anio, mes, semana } = getFiltrosActuales();
+                    const conteo = new Map();
 
-                (atencionesData?.features || []).forEach(f => {
+                    (atencionesData?.features || []).forEach(f => {
                     const p = f.properties || {};
-                    const y = P.year(p);
-                    const m = P.month(p);
-                    const w = P.week(p);
+                    const y = num(P.year(p));
+                    const m = num(P.month(p));
+                    const w = num(P.week(p));
                     const d = (P.diag(p) ?? '').toString().trim();
 
-                    const okAnio   = (!anio   || String(y) == String(anio));
-                    const okMes    = (!mes    || String(m) == String(mes));
-                    const okSemana = (!semana || String(w) == String(semana));
+                    const okAnio   = (!anio   || y === num(anio));
+                    const okMes    = (!mes    || m === num(mes));
+                    const okSemana = (!semana || w === num(semana));
 
                     if (okAnio && okMes && okSemana && d) {
-                    conteo.set(d, (conteo.get(d) || 0) + 1);
+                        conteo.set(d, (conteo.get(d) || 0) + 1);
                     }
-                });
+                    });
 
                 // Array ordenado por cantidad desc, luego alfabético
                 return [...conteo.entries()]
