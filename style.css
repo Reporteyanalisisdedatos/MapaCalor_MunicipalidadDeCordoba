@@ -307,7 +307,7 @@
             position: absolute;
             top: 95px;
             bottom: 0;
-            left: 330px; /* se corre para dejar lugar al panel */
+            left: 360px; /* se corre para dejar lugar al panel */
             right: 0;
             z-index: 1;
         }
@@ -375,3 +375,4 @@
         }
 
         
+
