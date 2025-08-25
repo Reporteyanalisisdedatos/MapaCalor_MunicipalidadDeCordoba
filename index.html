@@ -95,26 +95,30 @@
 </select>
 </label>
 <label>
-<select id="filtro-semana">
-<option value="">-- Semana Epidemiológica --</option>
-                
-</select>
-<div class="filter-group" id="diag-summary-group">
-    <div class="filter-group-title">Diagnósticos (conteo)</div>
-    <div id="diag-summary" style="max-height: 240px; overflow-y: auto; font-family: sans-serif;">
-    <div style="font-size:13px; color:#666;">Selección de filtros vacía.</div>
-</div>
-</div>
+  <select id="filtro-semana">
+    <option value="">-- Semana Epidemiológica --</option>
+  </select>
 </label>
+
 <label>
-<select id="filtro-diagnostico">
-<option value="">-- Diagnóstico --</option>
-<option value="Dengue">Dengue</option>
-</select>
+  <select id="filtro-diagnostico">
+    <option value="">-- Diagnóstico --</option>
+  </select>
 </label>
+
+</div> <!-- .filter-group-content -->
+</div> <!-- .filter-group -->
+
+<!-- Conteo de diagnósticos: DENTRO de #left-panel, al fondo -->
+<div id="diag-summary-group" class="diag-card" style="margin-top:auto;">
+  <div class="diag-card__title">Diagnósticos (conteo)</div>
+  <div id="diag-summary" class="diag-card__body">
+    <div style="padding:10px;font-size:13px;color:#666;">Selección de filtros vacía.</div>
+  </div>
 </div>
-</div>
-</div>
+
+</div> <!-- Cierre de #left-panel -->
+
 <div id="map"></div>
 <div id="zona-info">
 <div id="zona-titulo" style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #005288;">
@@ -1064,56 +1068,53 @@
                 }
 
                 function renderDiagnosticosConteo() {
-                const wrap = document.getElementById('diag-summary');
-                if (!wrap) return;
+                    const wrap = document.getElementById('diag-summary');
+                    if (!wrap) return;
 
-                const items = calcularConteoDiagnosticos();
+                    const items = calcularConteoDiagnosticos();
 
-                if (!items.length) {
-                    wrap.innerHTML = `<div style="font-size:13px; color:#666;">Sin registros para los filtros actuales.</div>`;
-                    return;
-                }
+                    const seleccionado = (
+                        (diagChoices && diagChoices.getValue(true)) ||
+                        document.getElementById('filtro-diagnostico').value ||
+                        ''
+                    ).toString().trim();
 
-                const seleccionado = (
-                    (diagChoices && diagChoices.getValue(true)) ||
-                    document.getElementById('filtro-diagnostico').value ||
-                    ''
-                ).toString().trim();
-
-                const total = items.reduce((acc, [,n]) => acc + n, 0);
-
-                const html = [
-                    `<div style="font-size:12px;color:#555;margin-bottom:6px;">Total de casos: <b>${total.toLocaleString('es-AR')}</b></div>`,
-                    `<ul style="list-style:none;padding:0;margin:0;">`,
-                    ...items.map(([diag, n]) => {
-                    const isSel = diag === seleccionado;
-                    return `
-                        <li data-diag="${diag.replace(/"/g,'&quot;')}"
-                            style="display:flex;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid #eee;cursor:pointer;${isSel ? 'background:#eef6ff;font-weight:600;' : ''}">
-                        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${diag}</span>
-                        <span>${n.toLocaleString('es-AR')}</span>
-                        </li>`;
-                    }),
-                    `</ul>`
-                ].join('');
-
-                wrap.innerHTML = html;
-
-                // Click: seleccionar en el combo y actualizar el mapa
-                wrap.querySelectorAll('li[data-diag]').forEach(li => {
-                    li.addEventListener('click', () => {
-                    const diag = li.getAttribute('data-diag');
-                    if (diagChoices) {
-                        diagChoices.setChoiceByValue(diag);
-                    } else {
-                        const sel = document.getElementById('filtro-diagnostico');
-                        sel.value = diag;
+                    if (!items.length) {
+                        wrap.innerHTML = `<div style="padding:10px;font-size:13px;color:#666;">Sin registros para los filtros actuales.</div>`;
+                        return;
                     }
-                    mostrarMapaDeCalor(atencionesData);
-                    renderDiagnosticosConteo();
+
+                    const total = items.reduce((acc, [, n]) => acc + n, 0);
+
+                    const list = items.map(([diag, n]) => {
+                        const isSel = norm(diag) === norm(seleccionado);
+                        return `
+                        <li class="diag-item ${isSel ? 'is-selected' : ''}" data-diag="${diag.replace(/"/g,'&quot;')}">
+                            <span class="diag-name">${diag}</span>
+                            <span class="diag-badge">${n.toLocaleString('es-AR')}</span>
+                        </li>`;
+                    }).join('');
+
+                    wrap.innerHTML = `
+                        <div class="diag-total">Total de casos: <b>${total.toLocaleString('es-AR')}</b></div>
+                        <ul class="diag-list">${list}</ul>
+                    `;
+
+                    // Click: seleccionar en el combo y actualizar mapa + lista
+                    wrap.querySelectorAll('.diag-item').forEach(li => {
+                        li.addEventListener('click', () => {
+                        const diag = li.getAttribute('data-diag');
+                        if (diagChoices) {
+                            diagChoices.setChoiceByValue(diag);
+                        } else {
+                            const sel = document.getElementById('filtro-diagnostico');
+                            sel.value = diag;
+                        }
+                        mostrarMapaDeCalor(atencionesData);
+                        renderDiagnosticosConteo();
+                        });
                     });
-                });
-                }
+                    }
 
             
                 
