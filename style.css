@@ -374,5 +374,45 @@
           background:#fafbfc; border-bottom:1px solid #eef1f5;
         }
 
-        
+        /* Drawer de diagnósticos por zona */
+.drawer{
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  width: 320px;
+  background:#fff;
+  border:1px solid #eaeaea;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.10);
+  display:flex;
+  flex-direction:column;
+  transition: transform .25s ease;
+  z-index: 2;
+}
+/* Colapsado: se esconde a la derecha dejando visible una pestaña */
+.drawer.is-collapsed{ transform: translateX(calc(100% - 32px)); }
+
+.drawer-toggle{
+  position:absolute;
+  right:100%;           /* queda como pestañita a la izquierda del cajón */
+  top: 10px;
+  width: 28px;
+  height: 36px;
+  border-radius:8px 0 0 8px;
+  background:#fff;
+  border:1px solid #eaeaea;
+  box-shadow:0 2px 4px rgba(0,0,0,.08);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  font-size:14px;
+  color:#005288;
+}
+
+.drawer-body{ padding:10px; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
+.drawer-title{ font-weight:600; color:#005288; text-align:center; margin-bottom:4px; border-bottom:1px solid #eef1f5; padding-bottom:6px; }
+
+/* Reutiliza tus clases .diag-list, .diag-item, .diag-badge, .diag-total existentes */
+
+
 
