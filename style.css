@@ -76,23 +76,7 @@
             height: 100%;
         }
 
-        #filters-container {
-            width: 100%;
-            position: fixed;
-            top: 95px;
-            left: 0;
-            background-color: #f8f8f8;
-            padding: 15px 20px;
-            box-sizing: border-box;
-            z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            align-items: stretch; /* Asegura que los grupos de filtros estén a la misma altura */
-        }
+        
 
         .filter-group {
             background-color: white;
@@ -303,14 +287,7 @@
             gap: 20px;
         }
 
-        #map {
-            position: absolute;
-            top: 95px;
-            bottom: 0;
-            left: 360px; /* se corre para dejar lugar al panel */
-            right: 0;
-            z-index: 1;
-        }
+        
 
         #search-container {
             margin-bottom: 15px;
@@ -332,55 +309,60 @@
             vertical-align: middle;
             margin-right: 8px;
         }
+        /* Para poder “pegar” la tarjeta al fondo del panel */
+#left-panel{
+  display: flex;
+  flex-direction: column;
+}
 
-        /* Tarjeta / card del conteo */
-        #diag-summary-group.diag-card{
-          background:#fff;
-          border-radius:10px;
-          border:1px solid #eaeaea;
-          box-shadow:0 2px 6px rgba(0,0,0,.08);
-          margin-top:10px;
-          display:flex;
-          flex-direction:column;
-          overflow:hidden;
-        }
-        .diag-card__title{
-          padding:8px 10px;
-          font-weight:600;
-          color:#005288;
-          border-bottom:1px solid #eef1f5;
-        }
-        .diag-card__body{ max-height:280px; overflow-y:auto; }
-        
-        /* Lista y filas */
-        .diag-list{ list-style:none; margin:0; padding:0; }
-        .diag-item{
-          display:flex; align-items:center; justify-content:space-between;
-          gap:10px; padding:8px 10px; border-bottom:1px solid #f3f4f6;
-          cursor:pointer;
-        }
-        .diag-item:hover{ background:#f8fbff; }
-        .diag-item.is-selected{ background:#eef6ff; font-weight:600; }
-        
-        .diag-name{
-          flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-        }
-        .diag-badge{
-          flex:0 0 auto; font-size:12px; line-height:1;
-          padding:4px 8px; border-radius:999px; background:#005288; color:#fff;
-        }
-        .diag-total{
-          font-size:12px; color:#555; padding:8px 10px;
-          background:#fafbfc; border-bottom:1px solid #eef1f5;
-        }
+/* Empuja la tarjeta al final de la columna (fondo del panel) */
+#diag-summary-group.diag-card{
+  margin-top: auto;             /* <-- clave */
+}
 
-        /* Drawer de diagnósticos por zona */
-.drawer{
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  bottom: 8px;
-  width: 320px;
+/* Estilos de la “card” (si ya los tenés, dejalos) */
+#diag-summary-group.diag-card{
+  background:#fff;
+  border-radius:10px;
+  border:1px solid #eaeaea;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  overflow:hidden;
+}
+.diag-card__title{
+  padding:8px 10px;
+  font-weight:600;
+  color:#005288;
+  border-bottom:1px solid #eef1f5;
+}
+.diag-card__body{ max-height:280px; overflow-y:auto; }
+
+.diag-list{ list-style:none; margin:0; padding:0; }
+.diag-item{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; padding:8px 10px; border-bottom:1px solid #f3f4f6;
+  cursor:pointer;
+}
+.diag-item:hover{ background:#f8fbff; }
+.diag-item.is-selected{ background:#eef6ff; font-weight:600; }
+.diag-name{
+  flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.diag-badge{
+  flex:0 0 auto; font-size:12px; line-height:1;
+  padding:4px 8px; border-radius:999px; background:#005288; color:#fff;
+}
+.diag-total{
+  font-size:12px; color:#555; padding:8px 10px;
+  background:#fafbfc; border-bottom:1px solid #eef1f5;
+}
+
+/* Drawer de diagnósticos por zona */
+#diag-zona-drawer.drawer{
+  position:absolute;
+  top:250px;          /* igual que #zona-info */
+  right:20px;
+  bottom:20px;
+  width:320px;
   background:#fff;
   border:1px solid #eaeaea;
   border-radius:10px;
@@ -388,17 +370,18 @@
   display:flex;
   flex-direction:column;
   transition: transform .25s ease;
-  z-index: 2;
+  z-index:1101;       /* por encima de #zona-info (1100) */
 }
-/* Colapsado: se esconde a la derecha dejando visible una pestaña */
-.drawer.is-collapsed{ transform: translateX(calc(100% - 32px)); }
+#diag-zona-drawer.drawer.is-collapsed{
+  transform: translateX(calc(100% - 32px)); /* queda como pestaña */
+}
 
-.drawer-toggle{
+#diag-zona-toggle.drawer-toggle{
   position:absolute;
-  right:100%;           /* queda como pestañita a la izquierda del cajón */
-  top: 10px;
-  width: 28px;
-  height: 36px;
+  right:100%;
+  top:10px;
+  width:28px;
+  height:36px;
   border-radius:8px 0 0 8px;
   background:#fff;
   border:1px solid #eaeaea;
@@ -409,10 +392,5 @@
   color:#005288;
 }
 
-.drawer-body{ padding:10px; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
-.drawer-title{ font-weight:600; color:#005288; text-align:center; margin-bottom:4px; border-bottom:1px solid #eef1f5; padding-bottom:6px; }
-
-/* Reutiliza tus clases .diag-list, .diag-item, .diag-badge, .diag-total existentes */
-
-
-
+#diag-zona-drawer .drawer-body{ padding:10px; display:flex; flex-direction:column; gap:6px; overflow:auto; }
+#diag-zona-drawer .drawer-title{ font-weight:600; color:#005288; text-align:center; margin-bottom:4px; border-bottom:1px solid #eef1f5; padding-bottom:6px; }
