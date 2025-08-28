@@ -198,6 +198,10 @@
         const allZonesSummaryPanel = document.getElementById('all-zones-summary-panel');
         const allZonesList = document.getElementById('all-zones-list');
         const totalCapitalPopulationDiv = document.getElementById('total-capital-population');
+        const drawerEl        = document.getElementById('diag-zona-drawer');
+        const drawerToggle    = document.getElementById('diag-zona-toggle');
+        const diagZonaResumen = document.getElementById('diag-zona-resumen');
+        const diagZonaList    = document.getElementById('diag-zona-list');
         
         let datosZonasPoblacion = [];
 
@@ -245,7 +249,19 @@
                 opacity: feature.properties['stroke-opacity'] || 1,
                 fillColor: feature.properties.fill || '#3388ff',
                 fillOpacity: feature.properties['fill-opacity'] || 0.3,
-            });
+                }); // ← cierre correcto de la función estilos
+
+                // Toggle del drawer (◀/▶) — va FUERA de estilos
+                const drawerEl = document.getElementById('diag-zona-drawer');
+                const drawerToggle = document.getElementById('diag-zona-toggle');
+                if (drawerEl && drawerToggle){
+                drawerToggle.addEventListener('click', () => {
+                    drawerEl.classList.toggle('is-collapsed');
+                    const expanded = !drawerEl.classList.contains('is-collapsed');
+                    drawerToggle.setAttribute('aria-expanded', String(expanded));
+                    updateDrawerChevron(); // ← asegurate de tener definida esta función
+                });
+                }
 
             // Función para obtener el nombre de la feature (para etiquetas y popups)
             function getFeatureName(props, layerName) {
@@ -381,24 +397,29 @@
                         actualizarDiagnosticos();
                         mostrarMapaDeCalor(atencionesData);
                         renderDiagnosticosConteo();       // ← nuevo
+                        renderDiagnosticosZona();
                     });
 
                     document.getElementById('filtro-mes').addEventListener('change', () => {
                         actualizarDiagnosticos();
                         mostrarMapaDeCalor(atencionesData);
                         renderDiagnosticosConteo();       // ← nuevo
+                        renderDiagnosticosZona();
                     });
 
                     document.getElementById('filtro-semana').addEventListener('change', () => {
                         actualizarDiagnosticos();
                         mostrarMapaDeCalor(atencionesData);
                         renderDiagnosticosConteo();       // ← nuevo
+                        renderDiagnosticosZona();
+                    
                     });
 
                     // si cambia el diagnóstico, solo actualizo el mapa y re-pinto la lista (para resaltar selección)
                     document.getElementById('filtro-diagnostico').addEventListener('change', () => {
                         mostrarMapaDeCalor(atencionesData);
                         renderDiagnosticosConteo();       // ← nuevo (highlight)
+                        renderDiagnosticosZona();
                     });
 
 
@@ -406,6 +427,7 @@
                     actualizarDiagnosticos()
                     mostrarMapaDeCalor(atenciones);
                     renderDiagnosticosConteo();
+                    renderDiagnosticosZona();
 
                     // LLENAR FILTRO DE SEMANA EPIDEMIOLÓGICA
                     const filtroSemana = document.getElementById("filtro-semana");
@@ -677,6 +699,8 @@
                                 onEachFeature: (feature, layer) => {
                                     layer.on('click', () => {
                                         mostrarEfectoresPorZona(zona_id);
+                                        currentZonaFeature = selectedFeature;
+                                        renderDiagnosticosZona();
                                         map.fitBounds(layer.getBounds(), { padding: [20, 20] });
                                         zonaInfoPanel.style.display = 'flex';
                                         allZonesSummaryPanel.style.display = 'none';
@@ -695,7 +719,18 @@
                         returnButton.style.display = 'none';
                         allZonesSummaryPanel.style.display = 'none';
                         map.setView([-31.42, -64.18], 11);
-                    }
+
+                        // ⬇️ OCULTAR + RESETEAR EL DRAWER DE DIAGNÓSTICOS POR ZONA
+                        if (drawerEl) {
+                            drawerEl.style.display = 'none';        // oculto el panel
+                            drawerEl.classList.add('is-collapsed'); // aseguro estado colapsado
+                        }
+                        if (drawerToggle) drawerToggle.setAttribute('aria-expanded', 'false');
+                        if (diagZonaResumen) diagZonaResumen.textContent = '';
+                        if (diagZonaList)    diagZonaList.innerHTML = '';
+                        currentZonaFeature = null;                // sin zona activa
+                        }
+                    
                 };
             }
 
@@ -1140,6 +1175,109 @@
                         renderDiagnosticosConteo();
                         });
                     });
+                    }
+                function showDiagZonaDrawer(){
+                    const drawer = document.getElementById('diag-zona-drawer');
+                    if (!drawer) return;
+                    drawer.style.display = 'block';
+                    drawer.classList.add('is-collapsed'); // aparece visible como pestaña
+                    updateDrawerChevron();
+                    }
+                    function hideDiagZonaDrawer(){
+                    const drawer = document.getElementById('diag-zona-drawer');
+                    if (!drawer) return;
+                    drawer.style.display = 'none';
+                    }
+                    function updateDrawerChevron(){
+                    const drawer = document.getElementById('diag-zona-drawer');
+                    const chev = document.querySelector('#diag-zona-toggle .chev');
+                    if (!drawer || !chev) return;
+                    const collapsed = drawer.classList.contains('is-collapsed');
+                    chev.textContent = collapsed ? '◀' : '▶';
+                    }
+
+                    /* Calcula y muestra los diagnósticos más frecuentes dentro de la zona seleccionada,
+                    respetando filtros y omitiendo diagnósticos que comienzan con número */
+                    function renderDiagnosticosZona(){
+                    const listEl = document.getElementById('diag-zona-list');
+                    const resumenEl = document.getElementById('diag-zona-resumen');
+                    if (!listEl || !resumenEl) return;
+
+                    if (!currentZonaFeature){
+                        hideDiagZonaDrawer();
+                        return;
+                    }
+
+                    const { anio, mes, semana } = getFiltrosActuales();
+                    const bbox = turf.bbox(currentZonaFeature); // [minX,minY,maxX,maxY]
+                    const [minX, minY, maxX, maxY] = bbox;
+
+                    const conteo = new Map();
+                    let total = 0;
+
+                    for (const f of (atencionesData?.features || [])){
+                        if (!f.geometry || !f.geometry.coordinates) continue;
+                        const [lng, lat] = f.geometry.coordinates;
+
+                        // pre-filtrado por bbox (rápido)
+                        if (lng < minX || lng > maxX || lat < minY || lat > maxY) continue;
+
+                        const p = f.properties || {};
+                        const y = num(P.year(p)), m = num(P.month(p)), w = num(P.week(p));
+                        const d = (P.diag(p) ?? '').toString().trim();
+
+                        const okA = (!anio || y === num(anio));
+                        const okM = (!mes  || m === num(mes));
+                        const okS = (!semana || w === num(semana));
+                        if (!(okA && okM && okS)) continue;
+                        if (!d || isIgnoredDiag(d)) continue;
+
+                        // verificación punto en polígono
+                        if (!turf.booleanPointInPolygon(turf.point([lng, lat]), currentZonaFeature)) continue;
+
+                        conteo.set(d, (conteo.get(d) || 0) + 1);
+                        total++;
+                    }
+
+                    const items = [...conteo.entries()]
+                        .sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0], 'es'))
+                        .slice(0, 40);
+
+                    resumenEl.innerHTML = `Total de casos en zona: <b>${total.toLocaleString('es-AR')}</b>`;
+
+                    if (!items.length){
+                        listEl.innerHTML = `<li class="diag-item"><span class="diag-name">Sin datos para los filtros actuales.</span></li>`;
+                        showDiagZonaDrawer();
+                        return;
+                    }
+
+                    const seleccionado = (
+                        (diagChoices && diagChoices.getValue(true)) ||
+                        document.getElementById('filtro-diagnostico').value || ''
+                    ).toString().trim();
+
+                    listEl.innerHTML = items.map(([diag, n]) => {
+                        const isSel = norm(diag) === norm(seleccionado);
+                        return `
+                        <li class="diag-item ${isSel ? 'is-selected' : ''}" data-diag="${diag.replace(/"/g,'&quot;')}">
+                            <span class="diag-name">${diag}</span>
+                            <span class="diag-badge">${n.toLocaleString('es-AR')}</span>
+                        </li>`;
+                    }).join('');
+
+                    // Click → setea diagnóstico y refresca todo
+                    listEl.querySelectorAll('.diag-item').forEach(li => {
+                        li.addEventListener('click', () => {
+                        const diag = li.getAttribute('data-diag');
+                        if (diagChoices) { diagChoices.setChoiceByValue(diag); }
+                        else { document.getElementById('filtro-diagnostico').value = diag; }
+                        mostrarMapaDeCalor(atencionesData);
+                        renderDiagnosticosConteo();
+                        renderDiagnosticosZona();
+                        });
+                    });
+
+                    showDiagZonaDrawer();
                     }
 
             
